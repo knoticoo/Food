@@ -11,9 +11,10 @@ import {
   Activity
 } from 'lucide-react';
 import { usePetContext } from '../context/PetContext';
+import logger from '../utils/logger';
 
 const Dashboard: React.FC = () => {
-  console.log('📊 Dashboard component rendering...');
+  logger.log('📊 Dashboard component rendering...');
   const { state, getCompletedTasksToday, getPendingTasksToday } = usePetContext();
   
   console.log('📈 Dashboard state:', {
