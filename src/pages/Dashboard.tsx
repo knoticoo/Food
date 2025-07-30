@@ -17,7 +17,7 @@ const Dashboard: React.FC = () => {
   logger.log('📊 Dashboard component rendering...');
   const { state, getCompletedTasksToday, getPendingTasksToday } = usePetContext();
   
-  console.log('📈 Dashboard state:', {
+  logger.log('📈 Dashboard state:', {
     petsCount: state.pets.length,
     tasksCount: state.tasks.length,
     taskLogsCount: state.taskLogs.length
@@ -29,7 +29,7 @@ const Dashboard: React.FC = () => {
   const totalTasks = completedTasks.length + pendingTasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks.length / totalTasks) * 100) : 0;
 
-  console.log('📅 Today\'s tasks:', {
+  logger.log('📅 Today\'s tasks:', {
     completed: completedTasks.length,
     pending: pendingTasks.length,
     total: totalTasks,
@@ -62,7 +62,7 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  console.log('🎨 Rendering Dashboard JSX...');
+  logger.log('🎨 Rendering Dashboard JSX...');
 
   return (
     <div className="space-y-6">
