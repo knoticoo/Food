@@ -15,8 +15,13 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
+  console.log('🏗️ Layout component rendering...');
   const location = useLocation();
   const { state } = usePetContext();
+
+  console.log('📍 Current location:', location.pathname);
+  console.log('🐕 Pets in state:', state.pets.length);
+  console.log('📋 Tasks in state:', state.tasks.length);
 
   const navigation = [
     { name: 'Главная', href: '/', icon: Home },
@@ -26,8 +31,24 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Настройки', href: '/settings', icon: Settings },
   ];
 
+  console.log('🧭 Navigation items:', navigation.length);
+
   return (
     <div className="min-h-screen bg-background">
+      {/* Debug indicator */}
+      <div style={{ 
+        position: 'fixed', 
+        top: '0', 
+        right: '0', 
+        background: 'blue', 
+        color: 'white', 
+        padding: '5px', 
+        zIndex: 9998,
+        fontSize: '12px'
+      }}>
+        Layout rendering - {state.pets.length} pets
+      </div>
+      
       {/* Header */}
       <header className="bg-surface border-b border-border">
         <div className="container">
