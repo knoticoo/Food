@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  Settings, 
+  Settings as SettingsIcon, 
   Bell, 
   Moon, 
   Sun, 
@@ -31,7 +31,7 @@ const Settings: React.FC = () => {
       {/* General Settings */}
       <div className="card">
         <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          <Settings size={20} />
+          <SettingsIcon size={20} />
           Общие настройки
         </h2>
         
