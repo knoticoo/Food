@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { 
   Home, 
-  PawPrint, 
+  Heart, 
   Calendar, 
   History, 
   Settings,
@@ -26,7 +26,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   const navigation = [
     { name: 'Главная', href: '/', icon: Home },
-    { name: 'Питомцы', href: '/pets', icon: PawPrint },
+    { name: 'Питомцы', href: '/pets', icon: Heart },
     { name: 'Задачи', href: '/tasks', icon: Calendar },
     { name: 'История', href: '/history', icon: History },
     { name: 'Настройки', href: '/settings', icon: Settings },

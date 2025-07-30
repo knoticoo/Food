@@ -4,9 +4,8 @@ import { ru } from 'date-fns/locale';
 import { 
   Clock, 
   CheckCircle, 
-  AlertCircle, 
   TrendingUp,
-  PawPrint,
+  Heart,
   Calendar,
   Activity
 } from 'lucide-react';
@@ -123,7 +122,7 @@ const Dashboard: React.FC = () => {
         <div className="card">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-warning/10 rounded-lg">
-              <PawPrint className="text-warning" size={24} />
+              <Heart className="text-warning" size={24} />
             </div>
             <div>
               <div className="text-2xl font-bold">{state.pets.length}</div>
@@ -234,7 +233,7 @@ const Dashboard: React.FC = () => {
         <h2 className="text-lg font-semibold mb-4">Быстрые действия</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <button className="btn btn-primary">
-            <PawPrint size={16} />
+            <Heart size={16} />
             Добавить питомца
           </button>
           <button className="btn btn-secondary">
