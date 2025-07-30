@@ -1,179 +1,183 @@
-# 🐾 Трекер Ухода за Питомцами
+# Pet Care Tracker
 
-Современное веб-приложение для отслеживания ухода за питомцами на русском языке. Помогает организовать расписание кормления, прогулок, игр и других важных задач.
+A modern full-stack web application for tracking pet care tasks and managing pet information. Built with React, TypeScript, Express.js, and SQLite.
 
-## ✨ Основные возможности
+## Features
 
-### 🧠 Основные функции
-- **Ежедневное расписание** - Просмотр задач на день с возможностью отметки о выполнении
-- **Кастомные распорядки** - Настройка индивидуальных расписаний для каждого питомца
-- **Уведомления** - Напоминания о предстоящих задачах (работает как PWA)
-- **Поддержка нескольких питомцев** - Добавление и управление несколькими питомцами
-- **История активности** - Просмотр выполненных задач и статистики
-- **Общий доступ** - Возможность поделиться с семьей/соседями по комнате
+### 🔐 Authentication & User Management
+- User registration and login
+- JWT-based authentication
+- Protected routes
+- User profile management
 
-### 🐕 Дополнительные функции
-- **Трекер лакомств** - Предотвращение перекармливания
-- **Заметки о настроении и здоровье** - Запись состояния питомца
-- **Предложения активности** - Автоматические предложения игр и прогулок
-- **Еженедельная сводка** - Красивый дашборд с временем прогулок, игр и т.д.
-- **Темы и кастомизация** - Аватары питомцев, темы по породам
+### 🐾 Pet Management
+- Add, edit, and delete pets
+- Track pet information (name, type, breed, age, weight)
+- Support for dogs, cats, birds, fish, and other pets
+- Pet avatars and detailed profiles
 
-## 🚀 Быстрый старт
+### 📋 Task Management
+- Create and schedule pet care tasks
+- Task types: feeding, walking, play, treats, medication, grooming, vet visits
+- Recurring tasks (daily, weekly, monthly)
+- Task completion tracking with notes and mood
+- Task history and logs
 
-### Требования
+### 📊 Dashboard & Analytics
+- Real-time dashboard with statistics
+- Task completion rates
+- Pet overview and quick actions
+- Today's tasks overview
+
+### 🎨 Modern UI/UX
+- Responsive design with Tailwind CSS
+- Modern, clean interface
+- Loading states and error handling
+- Toast notifications
+- Mobile-friendly design
+
+## Tech Stack
+
+### Frontend
+- **React 18** with TypeScript
+- **React Router** for navigation
+- **Tailwind CSS** for styling
+- **Lucide React** for icons
+- **Axios** for API communication
+- **Date-fns** for date handling
+
+### Backend
+- **Express.js** server
+- **SQLite** database
+- **JWT** authentication
+- **bcryptjs** for password hashing
+- **Express Validator** for input validation
+- **CORS** enabled
+
+## Getting Started
+
+### Prerequisites
 - Node.js 16+ 
-- npm или yarn
+- npm or yarn
 
-### Установка
+### Installation
 
-1. Клонируйте репозиторий:
+1. Clone the repository:
 ```bash
 git clone <repository-url>
 cd pet-care-tracker
 ```
 
-2. Установите зависимости:
+2. Install dependencies:
 ```bash
 npm install
 ```
 
-3. Запустите приложение в режиме разработки:
+3. Start the development server:
 ```bash
 npm run dev
 ```
 
-4. Откройте [http://localhost:3000](http://localhost:3000) в браузере
+This will start both the backend server (port 3001) and frontend development server (port 5173).
 
-### Сборка для продакшена
+### Development Scripts
 
-```bash
-npm run build
-```
+- `npm run dev` - Start both frontend and backend in development mode
+- `npm run dev:frontend` - Start only the frontend
+- `npm run dev:backend` - Start only the backend
+- `npm run build` - Build the frontend for production
+- `npm run start` - Start the production server
 
-## 📱 Использование
+## API Endpoints
 
-### Добавление питомца
-1. Перейдите на страницу "Питомцы"
-2. Нажмите "Добавить питомца"
-3. Заполните информацию: имя, тип, порода, возраст, вес
-4. Нажмите "Добавить"
+### Authentication
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
 
-### Создание задачи
-1. Перейдите на страницу "Задачи"
-2. Нажмите "Новая задача"
-3. Выберите питомца, тип задачи, время
-4. Настройте повторение при необходимости
-5. Нажмите "Добавить"
+### Pets
+- `GET /api/pets` - Get all user's pets
+- `POST /api/pets` - Create a new pet
+- `PUT /api/pets/:id` - Update a pet
+- `DELETE /api/pets/:id` - Delete a pet
 
-### Отметка выполнения
-- На главной странице нажмите "Выполнить" рядом с задачей
-- Или перейдите на страницу "Задачи" и отметьте выполнение там
+### Tasks
+- `GET /api/tasks` - Get all user's tasks (with optional filters)
+- `POST /api/tasks` - Create a new task
+- `PUT /api/tasks/:id` - Update a task
+- `DELETE /api/tasks/:id` - Delete a task
+- `POST /api/tasks/:id/complete` - Complete a task
 
-## 🛠️ Технологии
+### Task Logs
+- `GET /api/task-logs` - Get task completion logs
 
-- **React 18** - Основной фреймворк
-- **TypeScript** - Типизация
-- **Vite** - Сборщик и dev-сервер
-- **React Router** - Навигация
-- **date-fns** - Работа с датами
-- **Lucide React** - Иконки
-- **CSS Variables** - Темы и стили
+### User Profile
+- `GET /api/user/profile` - Get user profile
+- `PUT /api/user/profile` - Update user profile
 
-## 📝 Логирование
+## Database Schema
 
-Приложение включает систему логирования для отладки:
+The application uses SQLite with the following tables:
 
-- **Файл логов**: `app.log` в корне проекта
-- **Уровни логирования**: LOG, INFO, WARN, ERROR, DEBUG
-- **Формат**: `[timestamp] LEVEL: message | Data: {...}`
-- **Автоматическое создание**: Логи создаются при запуске приложения
+- **users** - User accounts and authentication
+- **pets** - Pet information linked to users
+- **tasks** - Pet care tasks linked to pets
+- **task_logs** - Task completion history
+- **shared_access** - Pet sharing between users (future feature)
 
-Для просмотра логов в реальном времени:
-```bash
-tail -f app.log
-```
+## Features in Detail
 
-## 📁 Структура проекта
+### User Registration & Login
+- Secure password hashing with bcrypt
+- JWT token-based authentication
+- Form validation and error handling
+- Automatic token refresh and logout
 
-```
-src/
-├── components/          # Переиспользуемые компоненты
-│   └── Layout.tsx     # Основной layout с навигацией
-├── context/           # React Context
-│   └── PetContext.tsx # Управление состоянием питомцев и задач
-├── pages/             # Страницы приложения
-│   ├── Dashboard.tsx  # Главная страница
-│   ├── Pets.tsx       # Управление питомцами
-│   ├── Tasks.tsx      # Управление задачами
-│   ├── History.tsx    # История активности
-│   └── Settings.tsx   # Настройки
-├── types/             # TypeScript типы
-│   └── index.ts       # Интерфейсы данных
-├── App.tsx            # Главный компонент
-├── main.tsx           # Точка входа
-└── index.css          # Глобальные стили
-```
+### Pet Management
+- Full CRUD operations for pets
+- Support for multiple pet types
+- Optional fields for breed, age, and weight
+- Pet avatars and detailed information
 
-## 🎨 Дизайн
+### Task Scheduling
+- Create tasks for specific pets
+- Set scheduled times and recurrence patterns
+- Task completion with optional notes and mood tracking
+- Task history and analytics
 
-Приложение использует современный дизайн с:
-- Адаптивной версткой для мобильных устройств
-- Поддержкой темной темы
-- Красивыми анимациями и переходами
-- Интуитивным интерфейсом
-- Эмодзи для визуального разделения типов задач
+### Dashboard
+- Real-time statistics and metrics
+- Today's tasks overview
+- Pet summary and quick actions
+- Completion rate tracking
 
-## 🔧 Настройка
+## Security Features
 
-### Переменные окружения
-Создайте файл `.env` в корне проекта:
-```env
-VITE_APP_TITLE=Трекер Питомцев
-VITE_APP_VERSION=1.0.0
-```
+- JWT token authentication
+- Password hashing with bcrypt
+- Input validation and sanitization
+- Protected API routes
+- CORS configuration
+- SQL injection prevention
 
-### Локальное хранение
-Все данные хранятся локально в браузере. Для экспорта/импорта данных используйте функции в настройках.
+## Future Enhancements
 
-## 📊 Статистика
+- Pet photo uploads
+- Task reminders and notifications
+- Pet sharing between family members
+- Advanced analytics and reports
+- Mobile app version
+- Email notifications
+- Pet health tracking
+- Vet appointment scheduling
 
-Приложение отслеживает:
-- Количество выполненных задач
-- Среднее количество задач в день
-- Активность по типам задач
-- Активность по питомцам
-- Процент выполнения задач
+## Contributing
 
-## 🔮 Планы развития
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
-- [ ] PWA поддержка для установки на мобильные устройства
-- [ ] Push-уведомления
-- [ ] Синхронизация с облаком
-- [ ] Фото питомцев
-- [ ] Ветеринарные записи
-- [ ] Социальные функции (делиться достижениями)
-- [ ] Интеграция с календарями
-- [ ] Экспорт в PDF
+## License
 
-## 🤝 Вклад в проект
-
-1. Форкните репозиторий
-2. Создайте ветку для новой функции (`git checkout -b feature/amazing-feature`)
-3. Зафиксируйте изменения (`git commit -m 'Add amazing feature'`)
-4. Отправьте в ветку (`git push origin feature/amazing-feature`)
-5. Откройте Pull Request
-
-## 📄 Лицензия
-
-Этот проект лицензирован под MIT License - см. файл [LICENSE](LICENSE) для деталей.
-
-## 🙏 Благодарности
-
-- Иконки: [Lucide](https://lucide.dev/)
-- Шрифты: [Inter](https://rsms.me/inter/)
-- Работа с датами: [date-fns](https://date-fns.org/)
-
----
-
-Создано с ❤️ для заботливых владельцев питомцев
+MIT License - see LICENSE file for details

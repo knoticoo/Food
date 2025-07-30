@@ -1,12 +1,41 @@
-import React, { useState } from 'react';
-import { Plus, Edit, Trash2, MoreVertical, Heart, Activity } from 'lucide-react';
-import { usePetContext } from '../context/PetContext';
+import React, { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, MoreVertical, Heart, Activity, X, Save } from 'lucide-react';
+import { petsAPI } from '../utils/api';
+import { useNotification } from '../context/NotificationContext';
 import { Pet } from '../types';
 
 const Pets: React.FC = () => {
-  const { state, dispatch } = usePetContext();
+  const [pets, setPets] = useState<Pet[]>([]);
+  const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingPet, setEditingPet] = useState<Pet | null>(null);
+  const [formData, setFormData] = useState({
+    name: '',
+    type: 'dog' as 'dog' | 'cat' | 'bird' | 'fish' | 'other',
+    breed: '',
+    age: '',
+    weight: '',
+    avatar: ''
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const { showNotification } = useNotification();
+
+  useEffect(() => {
+    loadPets();
+  }, []);
+
+  const loadPets = async () => {
+    try {
+      setLoading(true);
+      const data = await petsAPI.getAll();
+      setPets(data);
+    } catch (error) {
+      showNotification('error', 'Error', 'Failed to load pets');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const getPetIcon = (type: string) => {
     switch (type) {
@@ -20,252 +49,330 @@ const Pets: React.FC = () => {
 
   const getPetTypeName = (type: string) => {
     switch (type) {
-      case 'dog': return 'Собака';
-      case 'cat': return 'Кошка';
-      case 'bird': return 'Птица';
-      case 'fish': return 'Рыбка';
-      default: return 'Другое';
+      case 'dog': return 'Dog';
+      case 'cat': return 'Cat';
+      case 'bird': return 'Bird';
+      case 'fish': return 'Fish';
+      default: return 'Other';
     }
   };
 
-  const handleAddPet = () => {
-    const newPet: Pet = {
-      id: Date.now().toString(),
-      name: 'Новый питомец',
+  const resetForm = () => {
+    setFormData({
+      name: '',
       type: 'dog',
-      createdAt: new Date(),
-    };
-    dispatch({ type: 'ADD_PET', payload: newPet });
-    setShowAddModal(false);
+      breed: '',
+      age: '',
+      weight: '',
+      avatar: ''
+    });
   };
 
-  const handleDeletePet = (petId: string) => {
-    if (confirm('Вы уверены, что хотите удалить этого питомца?')) {
-      dispatch({ type: 'DELETE_PET', payload: petId });
+  const handleAddPet = async () => {
+    if (!formData.name.trim()) {
+      showNotification('error', 'Error', 'Pet name is required');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const newPet = await petsAPI.create({
+        name: formData.name,
+        type: formData.type,
+        breed: formData.breed || undefined,
+        age: formData.age ? parseInt(formData.age) : undefined,
+        weight: formData.weight ? parseFloat(formData.weight) : undefined,
+        avatar: formData.avatar || undefined
+      });
+
+      setPets([newPet, ...pets]);
+      setShowAddModal(false);
+      resetForm();
+      showNotification('success', 'Success', 'Pet added successfully');
+    } catch (error) {
+      showNotification('error', 'Error', 'Failed to add pet');
+    } finally {
+      setIsSubmitting(false);
     }
   };
+
+  const handleEditPet = async () => {
+    if (!editingPet || !formData.name.trim()) {
+      showNotification('error', 'Error', 'Pet name is required');
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      const updatedPet = await petsAPI.update(editingPet.id, {
+        name: formData.name,
+        type: formData.type,
+        breed: formData.breed || undefined,
+        age: formData.age ? parseInt(formData.age) : undefined,
+        weight: formData.weight ? parseFloat(formData.weight) : undefined,
+        avatar: formData.avatar || undefined
+      });
+
+      setPets(pets.map(pet => pet.id === editingPet.id ? updatedPet : pet));
+      setEditingPet(null);
+      resetForm();
+      showNotification('success', 'Success', 'Pet updated successfully');
+    } catch (error) {
+      showNotification('error', 'Error', 'Failed to update pet');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleDeletePet = async (petId: string) => {
+    if (!confirm('Are you sure you want to delete this pet?')) {
+      return;
+    }
+
+    try {
+      await petsAPI.delete(petId);
+      setPets(pets.filter(pet => pet.id !== petId));
+      showNotification('success', 'Success', 'Pet deleted successfully');
+    } catch (error) {
+      showNotification('error', 'Error', 'Failed to delete pet');
+    }
+  };
+
+  const openEditModal = (pet: Pet) => {
+    setEditingPet(pet);
+    setFormData({
+      name: pet.name,
+      type: pet.type,
+      breed: pet.breed || '',
+      age: pet.age?.toString() || '',
+      weight: pet.weight?.toString() || '',
+      avatar: pet.avatar || ''
+    });
+  };
+
+  const closeModal = () => {
+    setShowAddModal(false);
+    setEditingPet(null);
+    resetForm();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Мои питомцы</h1>
-          <p className="text-text-secondary mt-1">
-            Управляйте информацией о ваших питомцах
+          <h1 className="text-3xl font-bold text-gray-900">My Pets</h1>
+          <p className="text-gray-600 mt-1">
+            Manage your pets information
           </p>
         </div>
         <button 
-          className="btn btn-primary"
+          className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2"
           onClick={() => setShowAddModal(true)}
         >
           <Plus size={16} />
-          Добавить питомца
+          Add Pet
         </button>
       </div>
 
       {/* Pets Grid */}
-      {state.pets.length === 0 ? (
-        <div className="card text-center py-12">
+      {pets.length === 0 ? (
+        <div className="bg-white rounded-lg shadow p-12 text-center">
           <div className="text-6xl mb-4">🐾</div>
-          <h2 className="text-xl font-semibold mb-2">Нет питомцев</h2>
-          <p className="text-text-secondary mb-6">
-            Добавьте своего первого питомца, чтобы начать отслеживать уход
+          <h2 className="text-xl font-semibold mb-2 text-gray-900">No pets yet</h2>
+          <p className="text-gray-600 mb-6">
+            Add your first pet to start tracking care
           </p>
           <button 
-            className="btn btn-primary"
+            className="bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-2 mx-auto"
             onClick={() => setShowAddModal(true)}
           >
             <Plus size={16} />
-            Добавить питомца
+            Add Pet
           </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {state.pets.map((pet) => {
-            const petTasks = state.tasks.filter(task => task.petId === pet.id);
-            const completedTasks = petTasks.filter(task => task.completedAt);
-            const pendingTasks = petTasks.filter(task => !task.completedAt);
-            
-            return (
-              <div key={pet.id} className="card hover:shadow-lg transition-shadow">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="text-4xl">{getPetIcon(pet.type)}</div>
-                    <div>
-                      <h3 className="text-lg font-semibold">{pet.name}</h3>
-                      <p className="text-sm text-text-secondary">
-                        {getPetTypeName(pet.type)}
-                        {pet.breed && ` • ${pet.breed}`}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="dropdown">
-                    <button className="btn btn-secondary btn-sm">
-                      <MoreVertical size={16} />
-                    </button>
-                    <div className="dropdown-menu">
-                      <button 
-                        className="dropdown-item"
-                        onClick={() => setEditingPet(pet)}
-                      >
-                        <Edit size={16} />
-                        Редактировать
-                      </button>
-                      <button 
-                        className="dropdown-item text-danger"
-                        onClick={() => handleDeletePet(pet.id)}
-                      >
-                        <Trash2 size={16} />
-                        Удалить
-                      </button>
-                    </div>
+          {pets.map((pet) => (
+            <div key={pet.id} className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="text-4xl">{getPetIcon(pet.type)}</div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{pet.name}</h3>
+                    <p className="text-sm text-gray-600">
+                      {getPetTypeName(pet.type)}
+                      {pet.breed && ` • ${pet.breed}`}
+                    </p>
                   </div>
                 </div>
-
-                {/* Pet Stats */}
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div className="text-center p-3 bg-surface-hover rounded-lg">
-                    <div className="text-lg font-bold text-success">
-                      {completedTasks.length}
-                    </div>
-                    <div className="text-xs text-text-secondary">
-                      Выполнено
-                    </div>
-                  </div>
-                  <div className="text-center p-3 bg-surface-hover rounded-lg">
-                    <div className="text-lg font-bold text-warning">
-                      {pendingTasks.length}
-                    </div>
-                    <div className="text-xs text-text-secondary">
-                      Ожидают
-                    </div>
-                  </div>
-                </div>
-
-                {/* Pet Info */}
-                <div className="space-y-2 text-sm">
-                  {pet.age && (
-                    <div className="flex justify-between">
-                      <span className="text-text-secondary">Возраст:</span>
-                      <span>{pet.age} лет</span>
-                    </div>
-                  )}
-                  {pet.weight && (
-                    <div className="flex justify-between">
-                      <span className="text-text-secondary">Вес:</span>
-                      <span>{pet.weight} кг</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-text-secondary">Добавлен:</span>
-                    <span>{pet.createdAt.toLocaleDateString('ru-RU')}</span>
-                  </div>
-                </div>
-
-                {/* Actions */}
-                <div className="flex gap-2 mt-4 pt-4 border-t border-border">
-                  <button className="btn btn-secondary btn-sm flex-1">
-                    <Activity size={16} />
-                    Задачи
-                  </button>
-                  <button className="btn btn-secondary btn-sm flex-1">
-                    <Heart size={16} />
-                    История
+                <div className="relative">
+                  <button className="p-1 hover:bg-gray-100 rounded">
+                    <MoreVertical size={16} className="text-gray-500" />
                   </button>
                 </div>
               </div>
-            );
-          })}
+
+              <div className="space-y-2 mb-4">
+                {pet.age && (
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Age:</span> {pet.age} years
+                  </p>
+                )}
+                {pet.weight && (
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Weight:</span> {pet.weight} kg
+                  </p>
+                )}
+              </div>
+
+              <div className="flex gap-2">
+                <button
+                  onClick={() => openEditModal(pet)}
+                  className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2 text-sm"
+                >
+                  <Edit size={14} />
+                  Edit
+                </button>
+                <button
+                  onClick={() => handleDeletePet(pet.id)}
+                  className="flex-1 bg-red-100 text-red-700 px-3 py-2 rounded-lg hover:bg-red-200 transition-colors flex items-center justify-center gap-2 text-sm"
+                >
+                  <Trash2 size={14} />
+                  Delete
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Add Pet Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="card w-full max-w-md">
-            <h2 className="text-xl font-semibold mb-4">Добавить питомца</h2>
+      {/* Add/Edit Modal */}
+      {(showAddModal || editingPet) && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900">
+                {editingPet ? 'Edit Pet' : 'Add New Pet'}
+              </h2>
+              <button
+                onClick={closeModal}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={20} />
+              </button>
+            </div>
+
             <form onSubmit={(e) => {
               e.preventDefault();
-              handleAddPet();
-            }}>
-              <div className="space-y-4">
+              editingPet ? handleEditPet() : handleAddPet();
+            }} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pet Name *
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="Enter pet name"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pet Type *
+                </label>
+                <select
+                  value={formData.type}
+                  onChange={(e) => setFormData({...formData, type: e.target.value as any})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                >
+                  <option value="dog">Dog</option>
+                  <option value="cat">Cat</option>
+                  <option value="bird">Bird</option>
+                  <option value="fish">Fish</option>
+                  <option value="other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Breed
+                </label>
+                <input
+                  type="text"
+                  value={formData.breed}
+                  onChange={(e) => setFormData({...formData, breed: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  placeholder="Enter breed"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Имя питомца
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Age (years)
                   </label>
-                  <input 
-                    type="text" 
-                    className="input"
-                    placeholder="Введите имя"
-                    defaultValue="Новый питомец"
+                  <input
+                    type="number"
+                    value={formData.age}
+                    onChange={(e) => setFormData({...formData, age: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Age"
+                    min="0"
                   />
                 </div>
-                
                 <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Тип питомца
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Weight (kg)
                   </label>
-                  <select className="input">
-                    <option value="dog">Собака</option>
-                    <option value="cat">Кошка</option>
-                    <option value="bird">Птица</option>
-                    <option value="fish">Рыбка</option>
-                    <option value="other">Другое</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Порода (необязательно)
-                  </label>
-                  <input 
-                    type="text" 
-                    className="input"
-                    placeholder="Например: Лабрадор"
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={formData.weight}
+                    onChange={(e) => setFormData({...formData, weight: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="Weight"
+                    min="0"
                   />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Возраст (лет)
-                    </label>
-                    <input 
-                      type="number" 
-                      className="input"
-                      placeholder="0"
-                      min="0"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium mb-2">
-                      Вес (кг)
-                    </label>
-                    <input 
-                      type="number" 
-                      className="input"
-                      placeholder="0"
-                      min="0"
-                      step="0.1"
-                    />
-                  </div>
                 </div>
               </div>
 
-              <div className="flex gap-3 mt-6">
-                <button 
+              <div className="flex gap-3 pt-4">
+                <button
                   type="button"
-                  className="btn btn-secondary flex-1"
-                  onClick={() => setShowAddModal(false)}
+                  onClick={closeModal}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
                 >
-                  Отмена
+                  Cancel
                 </button>
-                <button 
+                <button
                   type="submit"
-                  className="btn btn-primary flex-1"
+                  disabled={isSubmitting}
+                  className="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
                 >
-                  Добавить
+                  {isSubmitting ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={16} />
+                      {editingPet ? 'Update' : 'Add Pet'}
+                    </>
+                  )}
                 </button>
               </div>
             </form>
