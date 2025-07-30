@@ -1,5 +1,5 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, 
   Heart, 
@@ -9,20 +9,20 @@ import {
   Plus
 } from 'lucide-react';
 import { usePetContext } from '../context/PetContext';
-import logger from '../utils/logger';
+import { useNotification } from '../context/NotificationContext';
+import Modal from './Modal';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  logger.log('🏗️ Layout component rendering...');
   const location = useLocation();
+  const navigate = useNavigate();
   const { state } = usePetContext();
-
-  logger.log('📍 Current location:', location.pathname);
-  logger.log('🐕 Pets in state:', state.pets.length);
-  logger.log('📋 Tasks in state:', state.tasks.length);
+  const { showNotification } = useNotification();
+  const [showAddPetModal, setShowAddPetModal] = useState(false);
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
 
   const navigation = [
     { name: 'Главная', href: '/', icon: Home },
@@ -32,27 +32,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Настройки', href: '/settings', icon: Settings },
   ];
 
-  logger.log('🧭 Navigation items:', navigation.length);
+  const handleAddPet = () => {
+    navigate('/pets');
+    showNotification('info', 'Добавление питомца', 'Переходим на страницу питомцев для добавления нового питомца.');
+  };
+
+  const handleAddTask = () => {
+    navigate('/tasks');
+    showNotification('info', 'Новая задача', 'Переходим на страницу задач для создания новой задачи.');
+  };
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Debug indicator */}
-      <div style={{ 
-        position: 'fixed', 
-        top: '0', 
-        right: '0', 
-        background: 'blue', 
-        color: 'white', 
-        padding: '5px', 
-        zIndex: 9998,
-        fontSize: '12px'
-      }}>
-        Layout rendering - {state.pets.length} pets
-      </div>
-      
       {/* Header */}
-      <header className="bg-surface border-b border-border">
-        <div className="container">
+      <header className="bg-surface border-b border-border shadow-sm">
+        <div className="container mx-auto px-4">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
               <div className="text-2xl">🐾</div>
@@ -70,7 +64,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main Content */}
       <div className="flex">
         {/* Sidebar */}
-        <aside className="w-64 bg-surface border-r border-border min-h-screen">
+        <aside className="w-64 bg-surface border-r border-border min-h-screen shadow-sm">
           <nav className="p-4">
             <ul className="space-y-2">
               {navigation.map((item) => {
@@ -81,9 +75,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                   <li key={item.name}>
                     <Link
                       to={item.href}
-                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                      className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-200 ${
                         isActive
-                          ? 'bg-primary text-white'
+                          ? 'bg-primary text-white shadow-md'
                           : 'text-text-secondary hover:bg-surface-hover hover:text-text-primary'
                       }`}
                     >
@@ -101,11 +95,17 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 Быстрые действия
               </h3>
               <div className="space-y-2">
-                <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary rounded-lg transition-colors">
+                <button 
+                  className="w-full flex items-center gap-3 px-3 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary rounded-lg transition-all duration-200"
+                  onClick={handleAddPet}
+                >
                   <Plus size={20} />
                   <span>Добавить питомца</span>
                 </button>
-                <button className="w-full flex items-center gap-3 px-3 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary rounded-lg transition-colors">
+                <button 
+                  className="w-full flex items-center gap-3 px-3 py-2 text-sm text-text-secondary hover:bg-surface-hover hover:text-text-primary rounded-lg transition-all duration-200"
+                  onClick={handleAddTask}
+                >
                   <Plus size={20} />
                   <span>Новая задача</span>
                 </button>
@@ -116,7 +116,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
         {/* Content */}
         <main className="flex-1 p-6">
-          <div className="container">
+          <div className="max-w-7xl mx-auto">
             {children}
           </div>
         </main>

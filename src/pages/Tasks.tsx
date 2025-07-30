@@ -8,17 +8,35 @@ import {
   CheckCircle, 
   AlertCircle,
   Filter,
-  Search
+  Search,
+  Edit,
+  Trash2,
+  X
 } from 'lucide-react';
 import { usePetContext } from '../context/PetContext';
+import { useNotification } from '../context/NotificationContext';
 import { Task } from '../types';
+import Modal from '../components/Modal';
 
 const Tasks: React.FC = () => {
   const { state, dispatch } = usePetContext();
+  const { showNotification } = useNotification();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [filterPet, setFilterPet] = useState<string>('all');
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // Form state for new/edit task
+  const [formData, setFormData] = useState({
+    title: '',
+    petId: '',
+    type: 'feeding',
+    scheduledTime: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+    isRecurring: false,
+  });
 
   const getTaskIcon = (type: string) => {
     switch (type) {
@@ -64,8 +82,9 @@ const Tasks: React.FC = () => {
       const isOnDate = taskDate >= startOfDay && taskDate <= endOfDay;
       const matchesPet = filterPet === 'all' || task.petId === filterPet;
       const matchesStatus = filterStatus === 'all' || getTaskStatus(task) === filterStatus;
+      const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
       
-      return isOnDate && matchesPet && matchesStatus;
+      return isOnDate && matchesPet && matchesStatus && matchesSearch;
     });
   };
 
@@ -74,20 +93,114 @@ const Tasks: React.FC = () => {
       type: 'COMPLETE_TASK', 
       payload: { taskId, completedAt: new Date() } 
     });
+    
+    const task = state.tasks.find(t => t.id === taskId);
+    const pet = state.pets.find(p => p.id === task?.petId);
+    
+    showNotification(
+      'success',
+      'Задача выполнена!',
+      `Задача "${task?.title}" для питомца ${pet?.name} отмечена как выполненная.`,
+      3000
+    );
   };
 
-  const handleAddTask = () => {
+  const handleAddTask = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.title.trim() || !formData.petId) {
+      showNotification('error', 'Ошибка', 'Пожалуйста, заполните все обязательные поля.');
+      return;
+    }
+
     const newTask: Task = {
       id: Date.now().toString(),
-      petId: state.pets[0]?.id || '',
-      title: 'Новая задача',
-      type: 'feeding',
-      scheduledTime: new Date(),
-      isRecurring: false,
+      petId: formData.petId,
+      title: formData.title,
+      type: formData.type,
+      scheduledTime: new Date(formData.scheduledTime),
+      isRecurring: formData.isRecurring,
       createdAt: new Date(),
     };
+
     dispatch({ type: 'ADD_TASK', payload: newTask });
     setShowAddModal(false);
+    resetForm();
+    
+    const pet = state.pets.find(p => p.id === formData.petId);
+    showNotification(
+      'success',
+      'Задача добавлена!',
+      `Новая задача "${formData.title}" для питомца ${pet?.name} успешно создана.`,
+      3000
+    );
+  };
+
+  const handleEditTask = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!editingTask || !formData.title.trim() || !formData.petId) {
+      showNotification('error', 'Ошибка', 'Пожалуйста, заполните все обязательные поля.');
+      return;
+    }
+
+    const updatedTask: Task = {
+      ...editingTask,
+      petId: formData.petId,
+      title: formData.title,
+      type: formData.type,
+      scheduledTime: new Date(formData.scheduledTime),
+      isRecurring: formData.isRecurring,
+    };
+
+    dispatch({ type: 'UPDATE_TASK', payload: updatedTask });
+    setShowEditModal(false);
+    setEditingTask(null);
+    resetForm();
+    
+    const pet = state.pets.find(p => p.id === formData.petId);
+    showNotification(
+      'success',
+      'Задача обновлена!',
+      `Задача "${formData.title}" для питомца ${pet?.name} успешно обновлена.`,
+      3000
+    );
+  };
+
+  const handleDeleteTask = (taskId: string) => {
+    const task = state.tasks.find(t => t.id === taskId);
+    const pet = state.pets.find(p => p.id === task?.petId);
+    
+    dispatch({ type: 'DELETE_TASK', payload: taskId });
+    
+    showNotification(
+      'info',
+      'Задача удалена',
+      `Задача "${task?.title}" для питомца ${pet?.name} была удалена.`,
+      3000
+    );
+  };
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      petId: state.pets[0]?.id || '',
+      type: 'feeding',
+      scheduledTime: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
+      isRecurring: false,
+    });
+  };
+
+  const openEditModal = (task: Task) => {
+    setEditingTask(task);
+    setFormData({
+      title: task.title,
+      petId: task.petId,
+      type: task.type,
+      scheduledTime: format(new Date(task.scheduledTime), "yyyy-MM-dd'T'HH:mm"),
+      isRecurring: task.isRecurring,
+    });
+    setShowEditModal(true);
   };
 
   const weekDays = eachDayOfInterval({
@@ -109,16 +222,19 @@ const Tasks: React.FC = () => {
         </div>
         <button 
           className="btn btn-primary"
-          onClick={() => setShowAddModal(true)}
+          onClick={() => {
+            resetForm();
+            setShowAddModal(true);
+          }}
         >
           <Plus size={16} />
           Новая задача
         </button>
       </div>
 
-      {/* Filters */}
+      {/* Filters and Search */}
       <div className="card">
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 flex-wrap">
           <div className="flex items-center gap-2">
             <Filter size={16} />
             <span className="text-sm font-medium">Фильтры:</span>
@@ -145,6 +261,17 @@ const Tasks: React.FC = () => {
             <option value="completed">Выполнено</option>
             <option value="overdue">Просрочено</option>
           </select>
+
+          <div className="flex items-center gap-2 flex-1 max-w-xs">
+            <Search size={16} className="text-text-muted" />
+            <input
+              type="text"
+              placeholder="Поиск задач..."
+              className="input"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
       </div>
 
@@ -180,11 +307,11 @@ const Tasks: React.FC = () => {
             return (
               <div 
                 key={day.toISOString()}
-                className={`p-3 rounded-lg cursor-pointer transition-colors ${
+                className={`p-3 rounded-lg cursor-pointer transition-all duration-200 ${
                   isSelected 
-                    ? 'bg-primary text-white' 
+                    ? 'bg-primary text-white shadow-md' 
                     : isToday 
-                      ? 'bg-primary/10 border border-primary' 
+                      ? 'bg-primary/10 border border-primary hover:bg-primary/20' 
                       : 'bg-surface-hover hover:bg-surface'
                 }`}
                 onClick={() => setSelectedDate(day)}
@@ -235,7 +362,7 @@ const Tasks: React.FC = () => {
               const status = getTaskStatus(task);
               
               return (
-                <div key={task.id} className="flex items-center justify-between p-4 bg-surface-hover rounded-lg">
+                <div key={task.id} className="flex items-center justify-between p-4 bg-surface-hover rounded-lg hover:shadow-md transition-all duration-200">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{getTaskIcon(task.type)}</span>
                     <div>
@@ -274,14 +401,30 @@ const Tasks: React.FC = () => {
                         </div>
                       )}
                       
-                      {status !== 'completed' && (
+                      <div className="flex items-center gap-1">
+                        {status !== 'completed' && (
+                          <button 
+                            className="btn btn-success btn-sm"
+                            onClick={() => handleCompleteTask(task.id)}
+                          >
+                            Выполнить
+                          </button>
+                        )}
+                        
                         <button 
-                          className="btn btn-success btn-sm"
-                          onClick={() => handleCompleteTask(task.id)}
+                          className="btn btn-secondary btn-sm"
+                          onClick={() => openEditModal(task)}
                         >
-                          Выполнить
+                          <Edit size={12} />
                         </button>
-                      )}
+                        
+                        <button 
+                          className="btn btn-danger btn-sm"
+                          onClick={() => handleDeleteTask(task.id)}
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -292,96 +435,220 @@ const Tasks: React.FC = () => {
       </div>
 
       {/* Add Task Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="card w-full max-w-md">
-            <h2 className="text-xl font-semibold mb-4">Новая задача</h2>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              handleAddTask();
-            }}>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Название задачи
-                  </label>
-                  <input 
-                    type="text" 
-                    className="input"
-                    placeholder="Например: Утреннее кормление"
-                    defaultValue="Новая задача"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Питомец
-                  </label>
-                  <select className="input">
-                    {state.pets.map(pet => (
-                      <option key={pet.id} value={pet.id}>{pet.name}</option>
-                    ))}
-                  </select>
-                </div>
+      <Modal
+        isOpen={showAddModal}
+        onClose={() => setShowAddModal(false)}
+        title="Новая задача"
+        size="lg"
+      >
+        <form onSubmit={handleAddTask}>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Название задачи *
+              </label>
+              <input 
+                type="text" 
+                className="input"
+                placeholder="Например: Утреннее кормление"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Питомец *
+              </label>
+              <select 
+                className="input"
+                value={formData.petId}
+                onChange={(e) => setFormData({ ...formData, petId: e.target.value })}
+                required
+              >
+                <option value="">Выберите питомца</option>
+                {state.pets.map(pet => (
+                  <option key={pet.id} value={pet.id}>{pet.name}</option>
+                ))}
+              </select>
+            </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Тип задачи
-                  </label>
-                  <select className="input">
-                    <option value="feeding">Кормление</option>
-                    <option value="walk">Прогулка</option>
-                    <option value="play">Игра</option>
-                    <option value="treat">Лакомство</option>
-                    <option value="medication">Лекарство</option>
-                    <option value="grooming">Уход</option>
-                    <option value="vet">Ветеринар</option>
-                    <option value="other">Другое</option>
-                  </select>
-                </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Тип задачи
+              </label>
+              <select 
+                className="input"
+                value={formData.type}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              >
+                <option value="feeding">Кормление</option>
+                <option value="walk">Прогулка</option>
+                <option value="play">Игра</option>
+                <option value="treat">Лакомство</option>
+                <option value="medication">Лекарство</option>
+                <option value="grooming">Уход</option>
+                <option value="vet">Ветеринар</option>
+                <option value="other">Другое</option>
+              </select>
+            </div>
 
-                <div>
-                  <label className="block text-sm font-medium mb-2">
-                    Время
-                  </label>
-                  <input 
-                    type="datetime-local" 
-                    className="input"
-                    defaultValue={format(new Date(), "yyyy-MM-dd'T'HH:mm")}
-                  />
-                </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Время *
+              </label>
+              <input 
+                type="datetime-local" 
+                className="input"
+                value={formData.scheduledTime}
+                onChange={(e) => setFormData({ ...formData, scheduledTime: e.target.value })}
+                required
+              />
+            </div>
 
-                <div className="flex items-center gap-2">
-                  <input 
-                    type="checkbox" 
-                    id="recurring"
-                    className="rounded"
-                  />
-                  <label htmlFor="recurring" className="text-sm">
-                    Повторяющаяся задача
-                  </label>
-                </div>
-              </div>
-
-              <div className="flex gap-3 mt-6">
-                <button 
-                  type="button"
-                  className="btn btn-secondary flex-1"
-                  onClick={() => setShowAddModal(false)}
-                >
-                  Отмена
-                </button>
-                <button 
-                  type="submit"
-                  className="btn btn-primary flex-1"
-                >
-                  Добавить
-                </button>
-              </div>
-            </form>
+            <div className="flex items-center gap-2">
+              <input 
+                type="checkbox" 
+                id="recurring"
+                className="rounded"
+                checked={formData.isRecurring}
+                onChange={(e) => setFormData({ ...formData, isRecurring: e.target.checked })}
+              />
+              <label htmlFor="recurring" className="text-sm">
+                Повторяющаяся задача
+              </label>
+            </div>
           </div>
-        </div>
-      )}
+
+          <div className="flex gap-3 mt-6">
+            <button 
+              type="button"
+              className="btn btn-secondary flex-1"
+              onClick={() => setShowAddModal(false)}
+            >
+              Отмена
+            </button>
+            <button 
+              type="submit"
+              className="btn btn-primary flex-1"
+            >
+              Добавить
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* Edit Task Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => {
+          setShowEditModal(false);
+          setEditingTask(null);
+        }}
+        title="Редактировать задачу"
+        size="lg"
+      >
+        <form onSubmit={handleEditTask}>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Название задачи *
+              </label>
+              <input 
+                type="text" 
+                className="input"
+                placeholder="Например: Утреннее кормление"
+                value={formData.title}
+                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Питомец *
+              </label>
+              <select 
+                className="input"
+                value={formData.petId}
+                onChange={(e) => setFormData({ ...formData, petId: e.target.value })}
+                required
+              >
+                <option value="">Выберите питомца</option>
+                {state.pets.map(pet => (
+                  <option key={pet.id} value={pet.id}>{pet.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Тип задачи
+              </label>
+              <select 
+                className="input"
+                value={formData.type}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              >
+                <option value="feeding">Кормление</option>
+                <option value="walk">Прогулка</option>
+                <option value="play">Игра</option>
+                <option value="treat">Лакомство</option>
+                <option value="medication">Лекарство</option>
+                <option value="grooming">Уход</option>
+                <option value="vet">Ветеринар</option>
+                <option value="other">Другое</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">
+                Время *
+              </label>
+              <input 
+                type="datetime-local" 
+                className="input"
+                value={formData.scheduledTime}
+                onChange={(e) => setFormData({ ...formData, scheduledTime: e.target.value })}
+                required
+              />
+            </div>
+
+            <div className="flex items-center gap-2">
+              <input 
+                type="checkbox" 
+                id="edit-recurring"
+                className="rounded"
+                checked={formData.isRecurring}
+                onChange={(e) => setFormData({ ...formData, isRecurring: e.target.checked })}
+              />
+              <label htmlFor="edit-recurring" className="text-sm">
+                Повторяющаяся задача
+              </label>
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <button 
+              type="button"
+              className="btn btn-secondary flex-1"
+              onClick={() => {
+                setShowEditModal(false);
+                setEditingTask(null);
+              }}
+            >
+              Отмена
+            </button>
+            <button 
+              type="submit"
+              className="btn btn-primary flex-1"
+            >
+              Сохранить
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 };
