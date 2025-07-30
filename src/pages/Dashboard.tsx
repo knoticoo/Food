@@ -13,13 +13,27 @@ import {
 import { usePetContext } from '../context/PetContext';
 
 const Dashboard: React.FC = () => {
+  console.log('📊 Dashboard component rendering...');
   const { state, getCompletedTasksToday, getPendingTasksToday } = usePetContext();
+  
+  console.log('📈 Dashboard state:', {
+    petsCount: state.pets.length,
+    tasksCount: state.tasks.length,
+    taskLogsCount: state.taskLogs.length
+  });
   
   const today = new Date();
   const completedTasks = getCompletedTasksToday();
   const pendingTasks = getPendingTasksToday();
   const totalTasks = completedTasks.length + pendingTasks.length;
   const completionRate = totalTasks > 0 ? Math.round((completedTasks.length / totalTasks) * 100) : 0;
+
+  console.log('📅 Today\'s tasks:', {
+    completed: completedTasks.length,
+    pending: pendingTasks.length,
+    total: totalTasks,
+    completionRate: completionRate
+  });
 
   const getTaskIcon = (type: string) => {
     switch (type) {
@@ -47,8 +61,24 @@ const Dashboard: React.FC = () => {
     }
   };
 
+  console.log('🎨 Rendering Dashboard JSX...');
+
   return (
     <div className="space-y-6">
+      {/* Debug indicator */}
+      <div style={{ 
+        position: 'fixed', 
+        bottom: '0', 
+        left: '0', 
+        background: 'green', 
+        color: 'white', 
+        padding: '5px', 
+        zIndex: 9997,
+        fontSize: '12px'
+      }}>
+        Dashboard rendering - {completedTasks.length} completed, {pendingTasks.length} pending
+      </div>
+      
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
