@@ -8,9 +8,10 @@ import Pets from './pages/Pets';
 import Tasks from './pages/Tasks';
 import History from './pages/History';
 import Settings from './pages/Settings';
+import logger from './utils/logger';
 
 function App() {
-  console.log('🏠 App component rendering...');
+  logger.log('🏠 App component rendering...');
   
   try {
     return (
@@ -43,7 +44,7 @@ function App() {
       </ErrorBoundary>
     );
   } catch (error) {
-    console.error('❌ Error in App component:', error);
+    logger.error('❌ Error in App component:', error);
     return (
       <div style={{ padding: '20px', color: 'red' }}>
         <h1>Error occurred</h1>

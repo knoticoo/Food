@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
 import { Pet, Task, TaskLog } from '../types';
 import { loadSampleData } from '../utils/sampleData';
+import logger from '../utils/logger';
 
 interface PetState {
   pets: Pet[];
@@ -113,23 +114,23 @@ interface PetContextType {
 const PetContext = createContext<PetContextType | undefined>(undefined);
 
 export function PetProvider({ children }: { children: ReactNode }) {
-  console.log('🐾 PetProvider initializing...');
+  logger.log('🐾 PetProvider initializing...');
   const [state, dispatch] = useReducer(petReducer, initialState);
 
-  console.log('📊 Initial state:', state);
+  logger.log('📊 Initial state:', state);
 
   // Загружаем примерные данные при первом запуске
   useEffect(() => {
-    console.log('🔄 Checking if sample data needs to be loaded...');
-    console.log('📈 Current pets count:', state.pets.length);
+    logger.log('🔄 Checking if sample data needs to be loaded...');
+    logger.log('📈 Current pets count:', state.pets.length);
     
     if (state.pets.length === 0) {
-      console.log('📥 Loading sample data...');
+      logger.log('📥 Loading sample data...');
       const sampleData = loadSampleData();
-      console.log('📋 Sample data loaded:', sampleData);
+      logger.log('📋 Sample data loaded:', sampleData);
       dispatch({ type: 'LOAD_DATA', payload: sampleData });
     } else {
-      console.log('✅ Sample data already loaded');
+      logger.log('✅ Sample data already loaded');
     }
   }, [state.pets.length]);
 

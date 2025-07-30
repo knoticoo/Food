@@ -3,19 +3,20 @@ import ReactDOM from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.tsx'
 import './index.css'
+import logger from './utils/logger'
 
-console.log('🚀 Starting React application...');
+logger.log('🚀 Starting React application...');
 
 const rootElement = document.getElementById('root');
-console.log('📦 Root element found:', rootElement);
+logger.log('📦 Root element found:', rootElement);
 
 if (!rootElement) {
-  console.error('❌ Root element not found!');
+  logger.error('❌ Root element not found!');
 } else {
-  console.log('✅ Root element exists, creating React root...');
+  logger.log('✅ Root element exists, creating React root...');
   const root = ReactDOM.createRoot(rootElement);
   
-  console.log('🔄 Rendering App component...');
+  logger.log('🔄 Rendering App component...');
   root.render(
     <React.StrictMode>
       <BrowserRouter>
@@ -23,5 +24,5 @@ if (!rootElement) {
       </BrowserRouter>
     </React.StrictMode>,
   );
-  console.log('✅ App component rendered successfully');
+  logger.log('✅ App component rendered successfully');
 }

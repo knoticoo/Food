@@ -9,19 +9,20 @@ import {
   Plus
 } from 'lucide-react';
 import { usePetContext } from '../context/PetContext';
+import logger from '../utils/logger';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
-  console.log('🏗️ Layout component rendering...');
+  logger.log('🏗️ Layout component rendering...');
   const location = useLocation();
   const { state } = usePetContext();
 
-  console.log('📍 Current location:', location.pathname);
-  console.log('🐕 Pets in state:', state.pets.length);
-  console.log('📋 Tasks in state:', state.tasks.length);
+  logger.log('📍 Current location:', location.pathname);
+  logger.log('🐕 Pets in state:', state.pets.length);
+  logger.log('📋 Tasks in state:', state.tasks.length);
 
   const navigation = [
     { name: 'Главная', href: '/', icon: Home },
@@ -31,7 +32,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     { name: 'Настройки', href: '/settings', icon: Settings },
   ];
 
-  console.log('🧭 Navigation items:', navigation.length);
+  logger.log('🧭 Navigation items:', navigation.length);
 
   return (
     <div className="min-h-screen bg-background">
