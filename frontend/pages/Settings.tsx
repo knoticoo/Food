@@ -8,12 +8,12 @@ import {
   Mail, 
   Smartphone, 
   Save, 
-  Edit, 
+   
   Camera,
   Trash2,
   Download,
-  Upload,
-  Settings as SettingsIcon,
+  
+  
   Palette,
   Lock,
   Eye,
@@ -22,12 +22,12 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { useTheme } from '../context/ThemeContext';
-import { userAPI, userPreferencesAPI, notificationsAPI } from '../utils/api';
-import { User as UserType, UserPreferences } from '../types';
+import { userAPI, userPreferencesAPI } from '../utils/api';
+import {  UserPreferences } from '../types';
 import Modal from '../components/ui/Modal';
 
 const Settings: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const { showNotification } = useNotification();
   const { theme, setTheme } = useTheme();
   

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, isToday, isYesterday, isTomorrow } from 'date-fns';
+import { format, startOfWeek, endOfWeek, eachDayOfInterval, isToday,  } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { 
   Clock, 
@@ -7,14 +7,9 @@ import {
   Heart,
   Calendar,
   Plus,
-  Target,
-  TrendingUp,
   Bell,
   Award,
   BookOpen,
-  Users,
-  Activity,
-  Zap,
   Star,
   AlertTriangle,
   Info,
@@ -24,20 +19,20 @@ import {
 import { usePetContext } from '../context/PetContext';
 import { useNotification } from '../context/NotificationContext';
 import { useTheme } from '../context/ThemeContext';
-import { Task, Notification, PetCareTip, PetAchievement, TaskAnalytics, PetAnalytics } from '../types';
-import { tasksAPI, notificationsAPI, petCareTipsAPI, analyticsAPI } from '../utils/api';
+import { Task, Notification, PetCareTip, PetAchievement, TaskAnalytics } from '../types';
+import { notificationsAPI, petCareTipsAPI, analyticsAPI } from '../utils/api';
 import Modal from '../components/ui/Modal';
 
 const Dashboard: React.FC = () => {
-  const { state, dispatch } = usePetContext();
+  const { state } = usePetContext();
   const { showNotification } = useNotification();
   const { theme, toggleTheme } = useTheme();
   
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [petCareTips, setPetCareTips] = useState<PetCareTip[]>([]);
-  const [recentAchievements, setRecentAchievements] = useState<PetAchievement[]>([]);
+  const [recentAchievements] = useState<PetAchievement[]>([]);
   const [taskAnalytics, setTaskAnalytics] = useState<TaskAnalytics[]>([]);
-  const [petAnalytics, setPetAnalytics] = useState<PetAnalytics[]>([]);
+  // const [petAnalytics] = useState<PetAnalytics[]>([]);
   const [loading, setLoading] = useState(true);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showTips, setShowTips] = useState(false);
@@ -55,7 +50,7 @@ const Dashboard: React.FC = () => {
         notificationsData,
         tipsData,
         taskStats,
-        petStats
+        // petStats
       ] = await Promise.all([
         notificationsAPI.getAll({ isRead: false }),
         petCareTipsAPI.getAll({ limit: 5 }),
@@ -66,7 +61,7 @@ const Dashboard: React.FC = () => {
       setNotifications(notificationsData);
       setPetCareTips(tipsData);
       setTaskAnalytics(taskStats);
-      setPetAnalytics(petStats);
+      // setPetAnalytics(// petStats);
     } catch (error) {
       showNotification('error', 'Error', 'Failed to load dashboard data');
     } finally {
@@ -181,7 +176,7 @@ const Dashboard: React.FC = () => {
     .slice(0, 5);
 
   const completedTasks = state.tasks.filter(task => task.completedAt);
-  const pendingTasks = state.tasks.filter(task => !task.completedAt);
+  // const pendingTasks = state.tasks.filter(task => !task.completedAt);
   const overdueTasks = state.tasks.filter(task => getTaskStatus(task) === 'overdue');
 
   if (loading) {
@@ -360,8 +355,8 @@ const Dashboard: React.FC = () => {
             <div className="grid grid-cols-7 gap-2">
               {weekData.map(({ date, tasks }) => {
                 const isTodayDate = isToday(date);
-                const isYesterdayDate = isYesterday(date);
-                const isTomorrowDate = isTomorrow(date);
+                // const isYesterdayDate = isYesterday(date);
+                // const isTomorrowDate = isTomorrow(date);
                 const hasTasks = tasks.length > 0;
                 const hasOverdue = tasks.some(task => getTaskStatus(task) === 'overdue');
                 const hasCompleted = tasks.some(task => getTaskStatus(task) === 'completed');
