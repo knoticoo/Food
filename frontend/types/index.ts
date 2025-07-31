@@ -59,6 +59,8 @@ export interface Task {
   isRecurring: boolean;
   recurrencePattern?: 'daily' | 'weekly' | 'monthly';
   notes?: string;
+  attachments?: TaskAttachment[];
+  comments?: TaskComment[];
   createdAt: Date;
 }
 

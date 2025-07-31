@@ -157,7 +157,7 @@ const Dashboard: React.FC = () => {
     try {
       await notificationsAPI.markAsRead(notificationId);
       setNotifications(notifications.filter(n => n.id !== notificationId));
-      showNotification('success', 'Notification marked as read');
+      showNotification('success', 'Notification marked as read', 'The notification has been marked as read successfully.');
     } catch (error) {
       showNotification('error', 'Error', 'Failed to mark notification as read');
     }
@@ -167,7 +167,7 @@ const Dashboard: React.FC = () => {
     try {
       await notificationsAPI.markAllAsRead();
       setNotifications([]);
-      showNotification('success', 'All notifications marked as read');
+      showNotification('success', 'All notifications marked as read', 'All notifications have been marked as read successfully.');
     } catch (error) {
       showNotification('error', 'Error', 'Failed to mark all notifications as read');
     }
@@ -359,9 +359,9 @@ const Dashboard: React.FC = () => {
 
             <div className="grid grid-cols-7 gap-2">
               {weekData.map(({ date, tasks }) => {
-                const isToday = isToday(date);
-                const isYesterday = isYesterday(date);
-                const isTomorrow = isTomorrow(date);
+                const isTodayDate = isToday(date);
+                const isYesterdayDate = isYesterday(date);
+                const isTomorrowDate = isTomorrow(date);
                 const hasTasks = tasks.length > 0;
                 const hasOverdue = tasks.some(task => getTaskStatus(task) === 'overdue');
                 const hasCompleted = tasks.some(task => getTaskStatus(task) === 'completed');
@@ -370,22 +370,22 @@ const Dashboard: React.FC = () => {
                   <div
                     key={date.toString()}
                     className={`p-3 rounded-lg text-center transition-all duration-200 ${
-                      isToday ? 'bg-primary text-white shadow-md' : 'bg-surface-hover'
+                      isTodayDate ? 'bg-primary text-white shadow-md' : 'bg-surface-hover'
                     }`}
                   >
                     <div className="text-center">
                       <div className={`text-xs font-medium ${
-                        isToday ? 'text-white' : 'text-text-secondary'
+                        isTodayDate ? 'text-white' : 'text-text-secondary'
                       }`}>
                         {format(date, 'EEE', { locale: ru })}
                       </div>
                       <div className={`text-lg font-bold ${
-                        isToday ? 'text-white' : 'text-text-primary'
+                        isTodayDate ? 'text-white' : 'text-text-primary'
                       }`}>
                         {format(date, 'd')}
                       </div>
                       <div className={`text-xs mt-1 ${
-                        isToday ? 'text-white/80' : 'text-text-secondary'
+                        isTodayDate ? 'text-white/80' : 'text-text-secondary'
                       }`}>
                         {tasks.length} задач
                       </div>

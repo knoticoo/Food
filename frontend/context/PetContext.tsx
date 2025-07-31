@@ -20,6 +20,7 @@ type PetAction =
   | { type: 'COMPLETE_TASK'; payload: { taskId: string; completedAt: Date } }
   | { type: 'ADD_TASK_LOG'; payload: TaskLog }
   | { type: 'SET_SELECTED_PET'; payload: string | null }
+  | { type: 'SET_TASKS'; payload: Task[] }
   | { type: 'LOAD_DATA'; payload: { pets: Pet[]; tasks: Task[]; taskLogs: TaskLog[] } };
 
 const initialState: PetState = {
@@ -87,6 +88,11 @@ function petReducer(state: PetState, action: PetAction): PetState {
       return {
         ...state,
         selectedPetId: action.payload,
+      };
+    case 'SET_TASKS':
+      return {
+        ...state,
+        tasks: action.payload,
       };
     case 'LOAD_DATA':
       return {

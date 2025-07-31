@@ -15,7 +15,6 @@ import {
   Upload,
   Settings as SettingsIcon,
   Palette,
-  Notifications,
   Lock,
   Eye,
   EyeOff
@@ -141,7 +140,7 @@ const Settings: React.FC = () => {
       await userPreferencesAPI.update(preferences);
       
       // Update theme if changed
-      if (preferences.theme !== theme) {
+      if (preferences.theme !== theme && preferences.theme) {
         setTheme(preferences.theme);
       }
       
@@ -280,7 +279,7 @@ const Settings: React.FC = () => {
           {[
             { id: 'profile', label: 'Профиль', icon: User },
             { id: 'preferences', label: 'Предпочтения', icon: Palette },
-            { id: 'notifications', label: 'Уведомления', icon: Notifications },
+            { id: 'notifications', label: 'Уведомления', icon: Bell },
             { id: 'security', label: 'Безопасность', icon: Shield },
             { id: 'data', label: 'Данные', icon: Download }
           ].map(({ id, label, icon: Icon }) => (

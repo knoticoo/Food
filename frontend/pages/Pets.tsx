@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, MoreVertical, X, Save, Camera, Award, TrendingUp, Heart, Calendar, Weight, Smile } from 'lucide-react';
+import { Plus, Edit, Trash2, MoreVertical, X, Save, Camera, Award, TrendingUp, Heart, Calendar, Smile } from 'lucide-react';
 import { petsAPI } from '../utils/api';
 import { useNotification } from '../context/NotificationContext';
 import { useTheme } from '../context/ThemeContext';
@@ -494,7 +494,7 @@ const Pets: React.FC = () => {
                 { id: 'overview', label: 'Overview', icon: Heart },
                 { id: 'photos', label: 'Photos', icon: Camera },
                 { id: 'milestones', label: 'Milestones', icon: Calendar },
-                { id: 'weight', label: 'Weight', icon: Weight },
+                { id: 'weight', label: 'Weight', icon: TrendingUp },
                 { id: 'mood', label: 'Mood', icon: Smile },
                 { id: 'achievements', label: 'Achievements', icon: Award }
               ].map(({ id, label, icon: Icon }) => (
@@ -628,7 +628,7 @@ const Pets: React.FC = () => {
                   
                   {petWeightLogs.length === 0 ? (
                     <div className="text-center py-8 text-text-secondary">
-                      <Weight size={48} className="mx-auto mb-3 opacity-50" />
+                      <TrendingUp size={48} className="mx-auto mb-3 opacity-50" />
                       <p>No weight logs yet</p>
                     </div>
                   ) : (
