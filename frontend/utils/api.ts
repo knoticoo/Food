@@ -43,12 +43,12 @@ api.interceptors.response.use(
   (error) => {
     console.error('API: Response error:', error);
     console.error('API: Response error details:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      data: error.response?.data,
-      url: error.config?.url
+      status: (error as any)?.response?.status,
+      statusText: (error as any)?.response?.statusText,
+      data: (error as any)?.response?.data,
+      url: (error as any)?.config?.url
     });
-    if (error.response?.status === 401) {
+    if ((error as any)?.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
       window.location.href = '/login';
@@ -69,10 +69,10 @@ export const authAPI = {
     } catch (error) {
       console.error('API: Register request failed:', error);
       console.error('API: Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        statusText: error.response?.statusText
+        message: error instanceof Error ? error.message : 'Unknown error',
+        response: (error as any)?.response?.data,
+        status: (error as any)?.response?.status,
+        statusText: (error as any)?.response?.statusText
       });
       throw error;
     }
@@ -88,10 +88,10 @@ export const authAPI = {
     } catch (error) {
       console.error('API: Login request failed:', error);
       console.error('API: Error details:', {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        statusText: error.response?.statusText
+        message: error instanceof Error ? error.message : 'Unknown error',
+        response: (error as any)?.response?.data,
+        status: (error as any)?.response?.status,
+        statusText: (error as any)?.response?.statusText
       });
       throw error;
     }
