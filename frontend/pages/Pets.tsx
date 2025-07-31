@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, MoreVertical, Heart, Activity, X, Save } from 'lucide-react';
+import { Plus, Edit, Trash2, MoreVertical, X, Save } from 'lucide-react';
 import { petsAPI } from '../utils/api';
 import { useNotification } from '../context/NotificationContext';
 import { Pet } from '../types';

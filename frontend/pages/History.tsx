@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { format, subDays, startOfWeek, endOfWeek } from 'date-fns';
+import { format, subDays, startOfWeek } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { 
   Calendar, 

@@ -3,13 +3,9 @@ import { format } from 'date-fns';
 import { 
   Clock, 
   CheckCircle, 
-  TrendingUp,
   Heart,
   Calendar,
-  Activity,
   Plus,
-  AlertCircle,
-  Users,
   Target
 } from 'lucide-react';
 import { petsAPI, tasksAPI } from '../utils/api';
@@ -46,8 +42,8 @@ const Dashboard: React.FC = () => {
       setPets(petsData);
       setTasks(tasksData);
 
-      const completedTasks = tasksData.filter(task => task.completedAt);
-      const pendingTasks = tasksData.filter(task => !task.completedAt);
+      const completedTasks = tasksData.filter((task: Task) => task.completedAt);
+      const pendingTasks = tasksData.filter((task: Task) => !task.completedAt);
       const totalTasks = completedTasks.length + pendingTasks.length;
       const completionRate = totalTasks > 0 ? Math.round((completedTasks.length / totalTasks) * 100) : 0;
 
@@ -199,7 +195,7 @@ const Dashboard: React.FC = () => {
                   <div className="flex-1">
                     <div className="font-medium text-gray-900">{task.title}</div>
                     <div className="text-sm text-gray-600">
-                      {getTaskTypeName(task.type)} • {task.petName}
+                      {getTaskTypeName(task.type)} • {pets.find(p => p.id === task.petId)?.name || 'Unknown Pet'}
                     </div>
                   </div>
                   <div className="text-sm text-gray-500">

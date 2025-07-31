@@ -10,8 +10,7 @@ import {
   Filter,
   Search,
   Edit,
-  Trash2,
-  X
+  Trash2
 } from 'lucide-react';
 import { usePetContext } from '../context/PetContext';
 import { useNotification } from '../context/NotificationContext';
@@ -33,7 +32,7 @@ const Tasks: React.FC = () => {
   const [formData, setFormData] = useState({
     title: '',
     petId: '',
-    type: 'feeding',
+    type: 'feeding' as 'feeding' | 'walk' | 'play' | 'treat' | 'medication' | 'grooming' | 'vet' | 'other',
     scheduledTime: format(new Date(), "yyyy-MM-dd'T'HH:mm"),
     isRecurring: false,
   });
