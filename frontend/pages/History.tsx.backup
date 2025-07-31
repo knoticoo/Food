@@ -22,7 +22,7 @@ import { usePetContext } from '../context/PetContext';
 import { useNotification } from '../context/NotificationContext';
 import { useTheme } from '../context/ThemeContext';
 import { Task, TaskLog } from '../types';
-import { tasksAPI, taskLogsAPI } from '../utils/api';
+import { tasksAPI, taskLogsAPI, analyticsAPI } from '../utils/api';
 import Modal from '../components/ui/Modal';
 
 const History: React.FC = () => {

@@ -8,14 +8,13 @@ import {
   Mail, 
   Smartphone, 
   Save, 
-  Edit, 
+   
   Camera,
   Trash2,
   Download,
-  Upload,
-  Settings as SettingsIcon,
+  
+  
   Palette,
-  Notifications,
   Lock,
   Eye,
   EyeOff
@@ -23,12 +22,12 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
 import { useTheme } from '../context/ThemeContext';
-import { userAPI, userPreferencesAPI, notificationsAPI } from '../utils/api';
-import { User as UserType, UserPreferences } from '../types';
+import { userAPI, userPreferencesAPI } from '../utils/api';
+import {  UserPreferences } from '../types';
 import Modal from '../components/ui/Modal';
 
 const Settings: React.FC = () => {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const { showNotification } = useNotification();
   const { theme, setTheme } = useTheme();
   
@@ -141,7 +140,7 @@ const Settings: React.FC = () => {
       await userPreferencesAPI.update(preferences);
       
       // Update theme if changed
-      if (preferences.theme !== theme) {
+      if (preferences.theme !== theme && preferences.theme) {
         setTheme(preferences.theme);
       }
       
@@ -280,7 +279,7 @@ const Settings: React.FC = () => {
           {[
             { id: 'profile', label: 'Профиль', icon: User },
             { id: 'preferences', label: 'Предпочтения', icon: Palette },
-            { id: 'notifications', label: 'Уведомления', icon: Notifications },
+            { id: 'notifications', label: 'Уведомления', icon: Bell },
             { id: 'security', label: 'Безопасность', icon: Shield },
             { id: 'data', label: 'Данные', icon: Download }
           ].map(({ id, label, icon: Icon }) => (

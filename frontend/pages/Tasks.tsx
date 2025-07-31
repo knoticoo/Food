@@ -17,14 +17,14 @@ import {
   StarOff,
   Download,
   Eye,
-  EyeOff,
+  
   Save
 } from 'lucide-react';
 import { usePetContext } from '../context/PetContext';
 import { useNotification } from '../context/NotificationContext';
 import { useTheme } from '../context/ThemeContext';
 import { Task, TaskAttachment, TaskComment, TaskLog } from '../types';
-import { tasksAPI, petsAPI, taskLogsAPI } from '../utils/api';
+import { tasksAPI,  taskLogsAPI } from '../utils/api';
 import Modal from '../components/ui/Modal';
 
 const Tasks: React.FC = () => {
