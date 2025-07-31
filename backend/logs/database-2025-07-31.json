@@ -86,5 +86,36 @@
     "userId": "10411458-0a48-4a75-8f8e-dbb05c0530c1",
     "email": "newtest@example.com",
     "verification": "success"
+  },
+  {
+    "timestamp": "2025-07-31T11:24:02.133Z",
+    "type": "database",
+    "requestId": "e15366a6-e734-4dd0-9a87-0777b4cf86d3",
+    "action": "password_hashed",
+    "email": "demo@example.com",
+    "passwordLength": 6,
+    "duration": 63
+  },
+  {
+    "timestamp": "2025-07-31T11:24:02.143Z",
+    "type": "database",
+    "action": "check_user_exists_result",
+    "email": "demo@example.com",
+    "userExists": true,
+    "userData": {
+      "id": "dd954ae5-6814-447b-9f57-c982dd3952e5",
+      "name": "Demo User",
+      "email": "demo@example.com",
+      "createdAt": "2025-07-31 11:24:02"
+    }
+  },
+  {
+    "timestamp": "2025-07-31T11:24:02.144Z",
+    "type": "database",
+    "requestId": "e15366a6-e734-4dd0-9a87-0777b4cf86d3",
+    "action": "user_creation_verified",
+    "userId": "dd954ae5-6814-447b-9f57-c982dd3952e5",
+    "email": "demo@example.com",
+    "verification": "success"
   }
 ]

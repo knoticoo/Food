@@ -44,5 +44,29 @@
     "name": "New Test User",
     "tokenGenerated": true,
     "duration": 84
+  },
+  {
+    "timestamp": "2025-07-31T11:24:02.070Z",
+    "type": "registrations",
+    "requestId": "e15366a6-e734-4dd0-9a87-0777b4cf86d3",
+    "action": "register_attempt",
+    "requestBody": {
+      "name": "Demo User",
+      "email": "demo@example.com",
+      "passwordLength": 6
+    },
+    "userAgent": "curl/8.12.1",
+    "ip": "127.0.0.1"
+  },
+  {
+    "timestamp": "2025-07-31T11:24:02.143Z",
+    "type": "registrations",
+    "requestId": "e15366a6-e734-4dd0-9a87-0777b4cf86d3",
+    "action": "registration_successful",
+    "userId": "dd954ae5-6814-447b-9f57-c982dd3952e5",
+    "email": "demo@example.com",
+    "name": "Demo User",
+    "tokenGenerated": true,
+    "duration": 73
   }
 ]
