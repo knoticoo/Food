@@ -68,5 +68,44 @@
     "name": "Demo User",
     "tokenGenerated": true,
     "duration": 73
+  },
+  {
+    "timestamp": "2025-07-31T11:35:47.795Z",
+    "type": "registrations",
+    "requestId": "d524e0a0-9268-4a63-b959-0dbb9835d126",
+    "action": "register_attempt",
+    "requestBody": {
+      "name": "Test User",
+      "email": "test@test.com",
+      "passwordLength": 7
+    },
+    "userAgent": "curl/8.12.1",
+    "ip": "127.0.0.1"
+  },
+  {
+    "timestamp": "2025-07-31T11:35:49.765Z",
+    "type": "registrations",
+    "requestId": "b24ae239-8c55-4554-8a4c-e12e1722b5b6",
+    "action": "register_attempt",
+    "requestBody": {
+      "name": "Test User",
+      "email": "test@test.com",
+      "passwordLength": 7
+    },
+    "userAgent": "curl/8.12.1",
+    "ip": "127.0.0.1"
+  },
+  {
+    "timestamp": "2025-07-31T11:35:51.477Z",
+    "type": "registrations",
+    "requestId": "94766b46-e069-4ea9-91b6-765ea3c3e6cc",
+    "action": "register_attempt",
+    "requestBody": {
+      "name": "Test User",
+      "email": "test@test.com",
+      "passwordLength": 7
+    },
+    "userAgent": "curl/8.12.1",
+    "ip": "127.0.0.1"
   }
 ]

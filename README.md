@@ -1,147 +1,128 @@
 # Pet Care Tracker
 
-A modern web application for tracking pet care activities with a beautiful, professional UI.
+A modern web application for tracking pet care activities, built with React, TypeScript, and Node.js.
 
-## 🏗️ Project Structure
+## Features
 
-```
-pet-care-tracker/
-├── backend/                 # Backend server
-│   ├── config/             # Database and configuration
-│   ├── controllers/        # Business logic
-│   ├── middleware/         # Express middleware
-│   ├── models/            # Data models
-│   ├── routes/            # API routes
-│   ├── utils/             # Utility functions
-│   ├── database.sqlite    # SQLite database
-│   └── server.js          # Main server file
-├── frontend/              # React frontend
-│   ├── components/        # React components
-│   │   ├── auth/         # Authentication components
-│   │   ├── layout/       # Layout components
-│   │   └── ui/           # UI components
-│   ├── context/          # React context providers
-│   ├── pages/            # Page components
-│   ├── styles/           # CSS styles
-│   ├── types/            # TypeScript types
-│   ├── utils/            # Utility functions
-│   ├── App.tsx           # Main App component
-│   └── main.tsx          # Entry point
-├── public/               # Static assets
-└── package.json          # Dependencies and scripts
-```
+- 🔐 **Simple Authentication** - Clean login and registration system
+- 🐾 **Pet Management** - Add, edit, and manage your pets
+- 📋 **Task Tracking** - Create and track care tasks for your pets
+- 📊 **Dashboard** - Overview of all your pets and their care status
+- 📱 **Responsive Design** - Works on desktop and mobile devices
+- 🌙 **Dark/Light Theme** - Toggle between themes
 
-## 🚀 Getting Started
+## Quick Start
 
 ### Prerequisites
 
 - Node.js (v16 or higher)
-- npm or yarn
+- npm
 
-### Installation
+### Installation & Running
 
-1. Clone the repository:
-```bash
-git clone <repository-url>
-cd pet-care-tracker
+1. **Clone the repository**
+   ```bash
+   git clone <repository-url>
+   cd pet-care-tracker
+   ```
+
+2. **Run the application**
+   ```bash
+   # Development mode (recommended)
+   ./run.sh dev
+   
+   # Production mode
+   ./run.sh prod
+   ```
+
+3. **Access the application**
+   - Development: http://localhost:5173
+   - Backend API: http://localhost:3001
+   - Production: http://localhost:3001
+
+## Authentication
+
+The application includes a complete authentication system:
+
+- **Registration**: Create a new account with name, email, and password
+- **Login**: Sign in with your email and password
+- **Protected Routes**: All main features require authentication
+- **JWT Tokens**: Secure authentication using JSON Web Tokens
+
+### Default Routes
+
+- `/login` - Sign in page
+- `/register` - Create new account
+- `/` - Dashboard (protected)
+- `/pets` - Pet management (protected)
+- `/tasks` - Task management (protected)
+- `/history` - Care history (protected)
+- `/settings` - User settings (protected)
+
+## Development
+
+### Project Structure
+
+```
+├── frontend/           # React TypeScript frontend
+│   ├── components/     # Reusable UI components
+│   ├── context/        # React context providers
+│   ├── pages/          # Page components
+│   └── utils/          # Utility functions
+├── backend/            # Node.js Express backend
+│   ├── routes/         # API route handlers
+│   ├── middleware/     # Express middleware
+│   ├── config/         # Database and app config
+│   └── utils/          # Backend utilities
+├── run.sh             # Universal start script
+└── package.json       # Project dependencies
 ```
 
-2. Install dependencies:
-```bash
-npm install
-```
+### Available Scripts
 
-3. Start the development servers:
-```bash
-npm run dev
-```
+- `./run.sh dev` - Start development servers
+- `./run.sh prod` - Build and start production server
+- `npm run build` - Build frontend for production
+- `npm run dev:frontend` - Start frontend only
+- `npm run dev:backend` - Start backend only
 
-This will start both the backend server (port 3001) and frontend development server (port 5173).
-
-### Development Scripts
-
-- `npm run dev` - Start both frontend and backend in development mode
-- `npm run dev:frontend` - Start only the frontend development server
-- `npm run dev:backend` - Start only the backend server
-- `npm run build` - Build the frontend for production
-- `npm run start` - Start the production server
-
-## 🛠️ Technology Stack
-
-### Backend
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **SQLite** - Database
-- **JWT** - Authentication
-- **bcryptjs** - Password hashing
-- **express-validator** - Input validation
+## Technology Stack
 
 ### Frontend
-- **React 18** - UI library
+- **React 18** - UI framework
 - **TypeScript** - Type safety
 - **React Router** - Client-side routing
 - **Tailwind CSS** - Styling
 - **Lucide React** - Icons
 - **Axios** - HTTP client
-- **Vite** - Build tool
 
-## 🔐 Authentication
+### Backend
+- **Node.js** - Runtime environment
+- **Express** - Web framework
+- **SQLite** - Database
+- **JWT** - Authentication
+- **bcryptjs** - Password hashing
+- **CORS** - Cross-origin requests
 
-The application uses JWT tokens for authentication. Users can register and login, and their data is securely stored in the SQLite database with encrypted passwords.
+## Database
 
-## 📱 Features
+The application uses SQLite for data storage. The database file is automatically created at `backend/database.sqlite` when you first run the application.
 
-- **User Authentication** - Secure login and registration
-- **Pet Management** - Add, edit, and manage pets
-- **Task Tracking** - Schedule and track pet care tasks
-- **History** - View completed tasks and activities
-- **Settings** - Manage user preferences
-- **Responsive Design** - Works on desktop and mobile
+### Tables
+- `users` - User accounts
+- `pets` - Pet information
+- `tasks` - Care tasks
+- `task_logs` - Task completion history
 
-## 🎨 UI/UX
+## Security Features
 
-The application features a modern, professional design with:
-- Clean, minimalist interface
-- Smooth animations and transitions
-- Responsive design for all devices
-- Intuitive navigation
-- Professional color scheme and typography
+- Password hashing with bcrypt
+- JWT token authentication
+- Input validation and sanitization
+- Protected API routes
+- CORS configuration
 
-## 🔧 Configuration
-
-### Environment Variables
-
-Create a `.env` file in the root directory:
-
-```env
-JWT_SECRET=your-secret-key-here
-PORT=3001
-```
-
-### Database
-
-The application uses SQLite for data storage. The database file is automatically created at `backend/database.sqlite` when the server starts.
-
-## 📝 API Endpoints
-
-### Authentication
-- `POST /api/auth/register` - Register a new user
-- `POST /api/auth/login` - Login user
-
-### Pets
-- `GET /api/pets` - Get user's pets
-- `POST /api/pets` - Create a new pet
-- `PUT /api/pets/:id` - Update a pet
-- `DELETE /api/pets/:id` - Delete a pet
-
-### Tasks
-- `GET /api/tasks` - Get user's tasks
-- `POST /api/tasks` - Create a new task
-- `PUT /api/tasks/:id` - Update a task
-- `DELETE /api/tasks/:id` - Delete a task
-- `POST /api/tasks/:id/complete` - Complete a task
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -149,6 +130,6 @@ The application uses SQLite for data storage. The database file is automatically
 4. Test thoroughly
 5. Submit a pull request
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License.
+MIT License - see LICENSE file for details.
