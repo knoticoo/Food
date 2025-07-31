@@ -60,17 +60,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log('AuthContext: Starting login process');
       setLoading(true);
       setError(null);
       
+      console.log('AuthContext: Calling authAPI.login');
       const response = await authAPI.login({ email, password });
+      console.log('AuthContext: Login response received:', response);
       
       setToken(response.token);
       setUser(response.user);
       
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
+      console.log('AuthContext: Login successful, user data saved');
     } catch (err: any) {
+      console.error('AuthContext: Login error:', err);
       setError(err.response?.data?.error || 'Login failed');
       throw err;
     } finally {
@@ -80,17 +85,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (name: string, email: string, password: string) => {
     try {
+      console.log('AuthContext: Starting registration process');
       setLoading(true);
       setError(null);
       
+      console.log('AuthContext: Calling authAPI.register');
       const response = await authAPI.register({ name, email, password });
+      console.log('AuthContext: Registration response received:', response);
       
       setToken(response.token);
       setUser(response.user);
       
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
+      console.log('AuthContext: Registration successful, user data saved');
     } catch (err: any) {
+      console.error('AuthContext: Registration error:', err);
       setError(err.response?.data?.error || 'Registration failed');
       throw err;
     } finally {

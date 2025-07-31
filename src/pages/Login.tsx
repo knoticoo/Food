@@ -14,13 +14,17 @@ export default function Login() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('Login form submitted:', { email, password: '***' });
     setIsLoading(true);
     clearError();
 
     try {
+      console.log('Attempting to login...');
       await login(email, password);
+      console.log('Login successful, navigating to dashboard');
       navigate('/');
     } catch (err) {
+      console.error('Login failed:', err);
       // Error is handled by the auth context
     } finally {
       setIsLoading(false);
