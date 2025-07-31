@@ -1,0 +1,25 @@
+[
+  {
+    "timestamp": "2025-07-31T11:22:52.644Z",
+    "type": "logins",
+    "requestId": "8b47fe84-04b2-4da6-9d8f-e574ccbe4e49",
+    "action": "login_attempt",
+    "requestBody": {
+      "email": "newtest@example.com",
+      "passwordLength": 6
+    },
+    "userAgent": "curl/8.12.1",
+    "ip": "127.0.0.1"
+  },
+  {
+    "timestamp": "2025-07-31T11:22:52.710Z",
+    "type": "logins",
+    "requestId": "8b47fe84-04b2-4da6-9d8f-e574ccbe4e49",
+    "action": "login_successful",
+    "userId": "10411458-0a48-4a75-8f8e-dbb05c0530c1",
+    "email": "newtest@example.com",
+    "name": "New Test User",
+    "tokenGenerated": true,
+    "duration": 66
+  }
+]
