@@ -76,7 +76,7 @@ router.post('/register', [
 
       // Create user
       db.run('INSERT INTO users (id, name, email, password) VALUES (?, ?, ?, ?)', 
-        [userId, name, email, hashedPassword], function(err) {
+        [userId, name, email, hashedPassword], async function(err) {
         if (err) {
           logger.logError({
             requestId,
