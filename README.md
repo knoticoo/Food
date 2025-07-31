@@ -1,63 +1,41 @@
 # Pet Care Tracker
 
-A modern full-stack web application for tracking pet care tasks and managing pet information. Built with React, TypeScript, Express.js, and SQLite.
+A modern web application for tracking pet care activities with a beautiful, professional UI.
 
-## Features
+## 🏗️ Project Structure
 
-### 🔐 Authentication & User Management
-- User registration and login
-- JWT-based authentication
-- Protected routes
-- User profile management
+```
+pet-care-tracker/
+├── backend/                 # Backend server
+│   ├── config/             # Database and configuration
+│   ├── controllers/        # Business logic
+│   ├── middleware/         # Express middleware
+│   ├── models/            # Data models
+│   ├── routes/            # API routes
+│   ├── utils/             # Utility functions
+│   ├── database.sqlite    # SQLite database
+│   └── server.js          # Main server file
+├── frontend/              # React frontend
+│   ├── components/        # React components
+│   │   ├── auth/         # Authentication components
+│   │   ├── layout/       # Layout components
+│   │   └── ui/           # UI components
+│   ├── context/          # React context providers
+│   ├── pages/            # Page components
+│   ├── styles/           # CSS styles
+│   ├── types/            # TypeScript types
+│   ├── utils/            # Utility functions
+│   ├── App.tsx           # Main App component
+│   └── main.tsx          # Entry point
+├── public/               # Static assets
+└── package.json          # Dependencies and scripts
+```
 
-### 🐾 Pet Management
-- Add, edit, and delete pets
-- Track pet information (name, type, breed, age, weight)
-- Support for dogs, cats, birds, fish, and other pets
-- Pet avatars and detailed profiles
-
-### 📋 Task Management
-- Create and schedule pet care tasks
-- Task types: feeding, walking, play, treats, medication, grooming, vet visits
-- Recurring tasks (daily, weekly, monthly)
-- Task completion tracking with notes and mood
-- Task history and logs
-
-### 📊 Dashboard & Analytics
-- Real-time dashboard with statistics
-- Task completion rates
-- Pet overview and quick actions
-- Today's tasks overview
-
-### 🎨 Modern UI/UX
-- Responsive design with Tailwind CSS
-- Modern, clean interface
-- Loading states and error handling
-- Toast notifications
-- Mobile-friendly design
-
-## Tech Stack
-
-### Frontend
-- **React 18** with TypeScript
-- **React Router** for navigation
-- **Tailwind CSS** for styling
-- **Lucide React** for icons
-- **Axios** for API communication
-- **Date-fns** for date handling
-
-### Backend
-- **Express.js** server
-- **SQLite** database
-- **JWT** authentication
-- **bcryptjs** for password hashing
-- **Express Validator** for input validation
-- **CORS** enabled
-
-## Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 16+ 
+
+- Node.js (v16 or higher)
 - npm or yarn
 
 ### Installation
@@ -73,7 +51,7 @@ cd pet-care-tracker
 npm install
 ```
 
-3. Start the development server:
+3. Start the development servers:
 ```bash
 npm run dev
 ```
@@ -83,101 +61,94 @@ This will start both the backend server (port 3001) and frontend development ser
 ### Development Scripts
 
 - `npm run dev` - Start both frontend and backend in development mode
-- `npm run dev:frontend` - Start only the frontend
-- `npm run dev:backend` - Start only the backend
+- `npm run dev:frontend` - Start only the frontend development server
+- `npm run dev:backend` - Start only the backend server
 - `npm run build` - Build the frontend for production
 - `npm run start` - Start the production server
 
-## API Endpoints
+## 🛠️ Technology Stack
+
+### Backend
+- **Node.js** - Runtime environment
+- **Express.js** - Web framework
+- **SQLite** - Database
+- **JWT** - Authentication
+- **bcryptjs** - Password hashing
+- **express-validator** - Input validation
+
+### Frontend
+- **React 18** - UI library
+- **TypeScript** - Type safety
+- **React Router** - Client-side routing
+- **Tailwind CSS** - Styling
+- **Lucide React** - Icons
+- **Axios** - HTTP client
+- **Vite** - Build tool
+
+## 🔐 Authentication
+
+The application uses JWT tokens for authentication. Users can register and login, and their data is securely stored in the SQLite database with encrypted passwords.
+
+## 📱 Features
+
+- **User Authentication** - Secure login and registration
+- **Pet Management** - Add, edit, and manage pets
+- **Task Tracking** - Schedule and track pet care tasks
+- **History** - View completed tasks and activities
+- **Settings** - Manage user preferences
+- **Responsive Design** - Works on desktop and mobile
+
+## 🎨 UI/UX
+
+The application features a modern, professional design with:
+- Clean, minimalist interface
+- Smooth animations and transitions
+- Responsive design for all devices
+- Intuitive navigation
+- Professional color scheme and typography
+
+## 🔧 Configuration
+
+### Environment Variables
+
+Create a `.env` file in the root directory:
+
+```env
+JWT_SECRET=your-secret-key-here
+PORT=3001
+```
+
+### Database
+
+The application uses SQLite for data storage. The database file is automatically created at `backend/database.sqlite` when the server starts.
+
+## 📝 API Endpoints
 
 ### Authentication
-- `POST /api/auth/register` - User registration
-- `POST /api/auth/login` - User login
+- `POST /api/auth/register` - Register a new user
+- `POST /api/auth/login` - Login user
 
 ### Pets
-- `GET /api/pets` - Get all user's pets
+- `GET /api/pets` - Get user's pets
 - `POST /api/pets` - Create a new pet
 - `PUT /api/pets/:id` - Update a pet
 - `DELETE /api/pets/:id` - Delete a pet
 
 ### Tasks
-- `GET /api/tasks` - Get all user's tasks (with optional filters)
+- `GET /api/tasks` - Get user's tasks
 - `POST /api/tasks` - Create a new task
 - `PUT /api/tasks/:id` - Update a task
 - `DELETE /api/tasks/:id` - Delete a task
 - `POST /api/tasks/:id/complete` - Complete a task
 
-### Task Logs
-- `GET /api/task-logs` - Get task completion logs
-
-### User Profile
-- `GET /api/user/profile` - Get user profile
-- `PUT /api/user/profile` - Update user profile
-
-## Database Schema
-
-The application uses SQLite with the following tables:
-
-- **users** - User accounts and authentication
-- **pets** - Pet information linked to users
-- **tasks** - Pet care tasks linked to pets
-- **task_logs** - Task completion history
-- **shared_access** - Pet sharing between users (future feature)
-
-## Features in Detail
-
-### User Registration & Login
-- Secure password hashing with bcrypt
-- JWT token-based authentication
-- Form validation and error handling
-- Automatic token refresh and logout
-
-### Pet Management
-- Full CRUD operations for pets
-- Support for multiple pet types
-- Optional fields for breed, age, and weight
-- Pet avatars and detailed information
-
-### Task Scheduling
-- Create tasks for specific pets
-- Set scheduled times and recurrence patterns
-- Task completion with optional notes and mood tracking
-- Task history and analytics
-
-### Dashboard
-- Real-time statistics and metrics
-- Today's tasks overview
-- Pet summary and quick actions
-- Completion rate tracking
-
-## Security Features
-
-- JWT token authentication
-- Password hashing with bcrypt
-- Input validation and sanitization
-- Protected API routes
-- CORS configuration
-- SQL injection prevention
-
-## Future Enhancements
-
-- Pet photo uploads
-- Task reminders and notifications
-- Pet sharing between family members
-- Advanced analytics and reports
-- Mobile app version
-- Email notifications
-- Pet health tracking
-- Vet appointment scheduling
-
-## Contributing
+## 🤝 Contributing
 
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
-4. Add tests if applicable
+4. Test thoroughly
 5. Submit a pull request
 
-## License
+## 📄 License
 
-MIT License - see LICENSE file for details
+This project is licensed under the MIT License.
