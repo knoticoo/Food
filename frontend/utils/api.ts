@@ -3,7 +3,7 @@ import {
   Pet, PetPhoto, PetMilestone, PetWeightLog, PetMoodLog, 
   Task, TaskAttachment, TaskComment, TaskLog,
   Notification, PetAchievement, SharedAccess, PetCareTip,
-  TaskAnalytics, PetAnalytics, UserPreferences
+  TaskAnalytics, PetAnalytics, UserPreferences, User
 } from '../types';
 
 const API_BASE_URL = 'http://localhost:3001/api';
@@ -273,7 +273,7 @@ export const notificationsAPI = {
   },
 
   create: async (data: {
-    type: 'success' | 'error' | 'warning' | 'info' | 'reminder' | 'achievement' | 'birthday';
+    type: string;
     title: string;
     message: string;
     relatedId?: string;
@@ -282,37 +282,31 @@ export const notificationsAPI = {
     return response.data;
   },
 
-  markAsRead: async (id: string): Promise<void> => {
-    const response = await api.put(`/notifications/${id}/read`);
-    return response.data;
+  markAsRead: async (notificationId: string): Promise<void> => {
+    await api.put(`/notifications/${notificationId}/read`);
   },
 
   markAllAsRead: async (): Promise<void> => {
-    const response = await api.put('/notifications/read-all');
-    return response.data;
+    await api.put('/notifications/read-all');
   },
 };
 
 // Analytics API
 export const analyticsAPI = {
-  getTaskAnalytics: async (params?: {
-    startDate?: string;
-    endDate?: string;
-    petId?: string;
-  }): Promise<TaskAnalytics[]> => {
-    const response = await api.get('/analytics/tasks', { params });
+  getTaskAnalytics: async (): Promise<TaskAnalytics[]> => {
+    const response = await api.get('/analytics/tasks');
     return response.data;
   },
 
-  getPetAnalytics: async (params?: { petId?: string }): Promise<PetAnalytics[]> => {
-    const response = await api.get('/analytics/pets', { params });
+  getPetAnalytics: async (): Promise<PetAnalytics[]> => {
+    const response = await api.get('/analytics/pets');
     return response.data;
   },
 };
 
 // Pet care tips API
 export const petCareTipsAPI = {
-  getAll: async (params?: { type?: string; category?: string }): Promise<PetCareTip[]> => {
+  getAll: async (params?: { limit?: number; type?: string; category?: string }): Promise<PetCareTip[]> => {
     const response = await api.get('/pet-care-tips', { params });
     return response.data;
   },
@@ -325,8 +319,32 @@ export const userPreferencesAPI = {
     return response.data;
   },
 
-  update: async (preferences: UserPreferences): Promise<UserPreferences> => {
-    const response = await api.put('/user/preferences', { preferences });
+  update: async (preferences: UserPreferences): Promise<void> => {
+    await api.put('/user/preferences', preferences);
+  },
+};
+
+// User API
+export const userAPI = {
+  getProfile: async (): Promise<User> => {
+    const response = await api.get('/user/profile');
+    return response.data;
+  },
+
+  updateProfile: async (data: {
+    name: string;
+    email: string;
+    avatar?: string;
+  }): Promise<User> => {
+    const response = await api.put('/user/profile', data);
+    return response.data;
+  },
+};
+
+// Task logs API
+export const taskLogsAPI = {
+  getAll: async (params?: { petId?: string; taskId?: string }): Promise<TaskLog[]> => {
+    const response = await api.get('/task-logs', { params });
     return response.data;
   },
 };
