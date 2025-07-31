@@ -21,5 +21,26 @@
     "name": "New Test User",
     "tokenGenerated": true,
     "duration": 66
+  },
+  {
+    "timestamp": "2025-07-31T11:35:45.474Z",
+    "type": "logins",
+    "requestId": "b2407eab-ebdb-4cc7-b03b-0da159a57ec0",
+    "action": "login_attempt",
+    "requestBody": {
+      "email": "test@test.com",
+      "passwordLength": 7
+    },
+    "userAgent": "curl/8.12.1",
+    "ip": "127.0.0.1"
+  },
+  {
+    "timestamp": "2025-07-31T11:35:45.476Z",
+    "type": "logins",
+    "requestId": "b2407eab-ebdb-4cc7-b03b-0da159a57ec0",
+    "action": "login_failed",
+    "reason": "user_not_found",
+    "email": "test@test.com",
+    "duration": 2
   }
 ]
