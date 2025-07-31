@@ -16,7 +16,7 @@ import {
 import { usePetContext } from '../context/PetContext';
 import { useNotification } from '../context/NotificationContext';
 import { Task } from '../types';
-import Modal from '../components/Modal';
+import Modal from '../components/ui/Modal';
 
 const Tasks: React.FC = () => {
   const { state, dispatch } = usePetContext();

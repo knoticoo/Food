@@ -10,9 +10,8 @@ import {
   LogOut,
   User
 } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useNotification } from '../context/NotificationContext';
-import Modal from './Modal';
+import { useAuth } from '../../context/AuthContext';
+import { useNotification } from '../../context/NotificationContext';
 
 interface LayoutProps {
   children: React.ReactNode;
