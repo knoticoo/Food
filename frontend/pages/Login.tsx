@@ -29,10 +29,10 @@ export default function Login() {
     } catch (err) {
       console.error('Login failed:', err);
       console.error('Error details:', {
-        message: err.message,
-        response: err.response?.data,
-        status: err.response?.status,
-        statusText: err.response?.statusText
+        message: err instanceof Error ? err.message : 'Unknown error',
+        response: (err as any)?.response?.data,
+        status: (err as any)?.response?.status,
+        statusText: (err as any)?.response?.statusText
       });
       // Error is handled by the auth context
     } finally {
