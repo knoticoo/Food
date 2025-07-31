@@ -57,6 +57,8 @@ export default function Register() {
 
     setIsLoading(true);
     console.log('Attempting to register user...');
+    console.log('Making API call to:', 'http://localhost:3001/api/auth/register');
+    console.log('Request data:', { name, email, password: '***' });
 
     try {
       await register(name, email, password);
@@ -64,6 +66,12 @@ export default function Register() {
       navigate('/');
     } catch (err) {
       console.error('Registration failed:', err);
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        statusText: err.response?.statusText
+      });
       // Error is handled by the auth context
     } finally {
       setIsLoading(false);
@@ -71,47 +79,48 @@ export default function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex items-center justify-center p-6 relative overflow-hidden">
       {/* Background decorative elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-blue-400/20 to-purple-400/20 rounded-full blur-3xl"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-tr from-indigo-400/20 to-pink-400/20 rounded-full blur-3xl"></div>
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-gradient-to-br from-blue-400/30 to-purple-400/30 rounded-full blur-3xl"></div>
+        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-gradient-to-tr from-indigo-400/30 to-pink-400/30 rounded-full blur-3xl"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-64 h-64 bg-gradient-to-br from-green-400/20 to-blue-400/20 rounded-full blur-2xl"></div>
       </div>
 
-      <div className="relative max-w-md w-full space-y-8">
+      <div className="relative w-full max-w-lg mx-auto">
         {/* Header */}
-        <div className="text-center space-y-4">
-          <div className="relative mx-auto h-20 w-20 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg transform hover:scale-105 transition-transform duration-300">
-            <Sparkles className="h-8 w-8 text-white" />
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-2xl opacity-20 animate-pulse"></div>
+        <div className="text-center space-y-6 mb-8">
+          <div className="relative mx-auto h-24 w-24 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl transform hover:scale-105 transition-transform duration-300">
+            <Sparkles className="h-10 w-10 text-white" />
+            <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-400 rounded-3xl opacity-20 animate-pulse"></div>
           </div>
-          <div className="space-y-2">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+          <div className="space-y-3">
+            <h1 className="text-5xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
               Join us today
             </h1>
-            <p className="text-gray-600 text-lg">
+            <p className="text-gray-600 text-xl">
               Create your account and start your pet care journey
             </p>
           </div>
         </div>
 
         {/* Form Card */}
-        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 space-y-6">
-          <form className="space-y-6" onSubmit={handleSubmit}>
+        <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/30 p-10 space-y-8">
+          <form className="space-y-8" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm font-medium shadow-sm">
+              <div className="bg-red-50 border border-red-200 text-red-700 px-6 py-4 rounded-2xl text-base font-medium shadow-sm">
                 {error}
               </div>
             )}
 
             {/* Name Field */}
-            <div className="space-y-2">
-              <label htmlFor="name" className="block text-sm font-semibold text-gray-700">
+            <div className="space-y-3">
+              <label htmlFor="name" className="block text-base font-semibold text-gray-700">
                 Full name
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                  <User className="h-6 w-6 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                 </div>
                 <input
                   id="name"
@@ -121,25 +130,25 @@ export default function Register() {
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  className={`block w-full pl-12 pr-4 py-4 border-2 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm ${
+                  className={`block w-full pl-14 pr-5 py-5 text-lg border-2 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white/70 backdrop-blur-sm placeholder-gray-400 ${
                     formErrors.name ? 'border-red-300' : 'border-gray-200'
                   }`}
                   placeholder="Enter your full name"
                 />
               </div>
               {formErrors.name && (
-                <p className="mt-1 text-sm text-red-600 font-medium">{formErrors.name}</p>
+                <p className="mt-2 text-sm text-red-600 font-medium">{formErrors.name}</p>
               )}
             </div>
 
             {/* Email Field */}
-            <div className="space-y-2">
-              <label htmlFor="email" className="block text-sm font-semibold text-gray-700">
+            <div className="space-y-3">
+              <label htmlFor="email" className="block text-base font-semibold text-gray-700">
                 Email address
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                  <Mail className="h-6 w-6 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                 </div>
                 <input
                   id="email"
@@ -149,25 +158,25 @@ export default function Register() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className={`block w-full pl-12 pr-4 py-4 border-2 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm ${
+                  className={`block w-full pl-14 pr-5 py-5 text-lg border-2 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white/70 backdrop-blur-sm placeholder-gray-400 ${
                     formErrors.email ? 'border-red-300' : 'border-gray-200'
                   }`}
                   placeholder="Enter your email"
                 />
               </div>
               {formErrors.email && (
-                <p className="mt-1 text-sm text-red-600 font-medium">{formErrors.email}</p>
+                <p className="mt-2 text-sm text-red-600 font-medium">{formErrors.email}</p>
               )}
             </div>
 
             {/* Password Field */}
-            <div className="space-y-2">
-              <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
+            <div className="space-y-3">
+              <label htmlFor="password" className="block text-base font-semibold text-gray-700">
                 Password
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                  <Lock className="h-6 w-6 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                 </div>
                 <input
                   id="password"
@@ -177,36 +186,36 @@ export default function Register() {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className={`block w-full pl-12 pr-12 py-4 border-2 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm ${
+                  className={`block w-full pl-14 pr-14 py-5 text-lg border-2 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white/70 backdrop-blur-sm placeholder-gray-400 ${
                     formErrors.password ? 'border-red-300' : 'border-gray-200'
                   }`}
                   placeholder="Create a password"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                  className="absolute inset-y-0 right-0 pr-5 flex items-center"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
+                    <EyeOff className="h-6 w-6 text-gray-400 hover:text-gray-600 transition-colors" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
+                    <Eye className="h-6 w-6 text-gray-400 hover:text-gray-600 transition-colors" />
                   )}
                 </button>
               </div>
               {formErrors.password && (
-                <p className="mt-1 text-sm text-red-600 font-medium">{formErrors.password}</p>
+                <p className="mt-2 text-sm text-red-600 font-medium">{formErrors.password}</p>
               )}
             </div>
 
             {/* Confirm Password Field */}
-            <div className="space-y-2">
-              <label htmlFor="confirmPassword" className="block text-sm font-semibold text-gray-700">
+            <div className="space-y-3">
+              <label htmlFor="confirmPassword" className="block text-base font-semibold text-gray-700">
                 Confirm password
               </label>
               <div className="relative group">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                <div className="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none">
+                  <Lock className="h-6 w-6 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                 </div>
                 <input
                   id="confirmPassword"
@@ -216,44 +225,44 @@ export default function Register() {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className={`block w-full pl-12 pr-12 py-4 border-2 rounded-xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white/50 backdrop-blur-sm ${
+                  className={`block w-full pl-14 pr-14 py-5 text-lg border-2 rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-500/20 focus:border-blue-500 transition-all duration-200 bg-white/70 backdrop-blur-sm placeholder-gray-400 ${
                     formErrors.confirmPassword ? 'border-red-300' : 'border-gray-200'
                   }`}
                   placeholder="Confirm your password"
                 />
                 <button
                   type="button"
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center"
+                  className="absolute inset-y-0 right-0 pr-5 flex items-center"
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
                   {showConfirmPassword ? (
-                    <EyeOff className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
+                    <EyeOff className="h-6 w-6 text-gray-400 hover:text-gray-600 transition-colors" />
                   ) : (
-                    <Eye className="h-5 w-5 text-gray-400 hover:text-gray-600 transition-colors" />
+                    <Eye className="h-6 w-6 text-gray-400 hover:text-gray-600 transition-colors" />
                   )}
                 </button>
               </div>
               {formErrors.confirmPassword && (
-                <p className="mt-1 text-sm text-red-600 font-medium">{formErrors.confirmPassword}</p>
+                <p className="mt-2 text-sm text-red-600 font-medium">{formErrors.confirmPassword}</p>
               )}
             </div>
 
             {/* Submit Button */}
-            <div className="pt-4">
+            <div className="pt-6">
               <button
                 type="submit"
                 disabled={isLoading}
-                className="group relative w-full flex justify-center py-4 px-6 border border-transparent text-base font-semibold rounded-xl text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+                className="group relative w-full flex justify-center py-5 px-8 border border-transparent text-lg font-semibold rounded-2xl text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-4 focus:ring-blue-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-xl hover:shadow-2xl"
               >
                 {isLoading ? (
                   <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-5 w-5 border-2 border-white border-t-transparent mr-3"></div>
+                    <div className="animate-spin rounded-full h-6 w-6 border-3 border-white border-t-transparent mr-3"></div>
                     Creating account...
                   </div>
                 ) : (
                   <div className="flex items-center">
                     <span>Create account</span>
-                    <div className="ml-2 transform group-hover:translate-x-1 transition-transform duration-200">
+                    <div className="ml-3 transform group-hover:translate-x-1 transition-transform duration-200">
                       →
                     </div>
                   </div>
@@ -262,8 +271,8 @@ export default function Register() {
             </div>
 
             {/* Sign in link */}
-            <div className="text-center pt-4">
-              <p className="text-gray-600">
+            <div className="text-center pt-6">
+              <p className="text-gray-600 text-lg">
                 Already have an account?{' '}
                 <Link
                   to="/login"
@@ -277,7 +286,7 @@ export default function Register() {
         </div>
 
         {/* Footer */}
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center text-base text-gray-500 mt-8">
           <p>Your data is securely stored and encrypted</p>
         </div>
       </div>

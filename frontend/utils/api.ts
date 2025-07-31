@@ -19,6 +19,9 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
+    console.log('API: Making request to:', config.url);
+    console.log('API: Request method:', config.method);
+    console.log('API: Request headers:', config.headers);
     const token = localStorage.getItem('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -26,14 +29,25 @@ api.interceptors.request.use(
     return config;
   },
   (error) => {
+    console.error('API: Request interceptor error:', error);
     return Promise.reject(error);
   }
 );
 
 // Response interceptor to handle auth errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log('API: Response received:', response.status, response.config.url);
+    return response;
+  },
   (error) => {
+    console.error('API: Response error:', error);
+    console.error('API: Response error details:', {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      data: error.response?.data,
+      url: error.config?.url
+    });
     if (error.response?.status === 401) {
       localStorage.removeItem('token');
       localStorage.removeItem('user');
@@ -47,16 +61,40 @@ api.interceptors.response.use(
 export const authAPI = {
   register: async (data: { name: string; email: string; password: string }) => {
     console.log('API: Registering user with data:', { ...data, password: '***' });
-    const response = await api.post('/auth/register', data);
-    console.log('API: Register response:', response.data);
-    return response.data;
+    console.log('API: Making request to:', `${API_BASE_URL}/auth/register`);
+    try {
+      const response = await api.post('/auth/register', data);
+      console.log('API: Register response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('API: Register request failed:', error);
+      console.error('API: Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      });
+      throw error;
+    }
   },
 
   login: async (data: { email: string; password: string }) => {
     console.log('API: Logging in user with data:', { ...data, password: '***' });
-    const response = await api.post('/auth/login', data);
-    console.log('API: Login response:', response.data);
-    return response.data;
+    console.log('API: Making request to:', `${API_BASE_URL}/auth/login`);
+    try {
+      const response = await api.post('/auth/login', data);
+      console.log('API: Login response:', response.data);
+      return response.data;
+    } catch (error) {
+      console.error('API: Login request failed:', error);
+      console.error('API: Error details:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText
+      });
+      throw error;
+    }
   },
 };
 
