@@ -1,0 +1,48 @@
+[
+  {
+    "timestamp": "2025-07-31T11:22:41.144Z",
+    "type": "registrations",
+    "requestId": "bb229772-96ff-4ff7-bafe-2e1aa7570fc0",
+    "action": "register_attempt",
+    "requestBody": {
+      "name": "Test User",
+      "email": "test@example.com",
+      "passwordLength": 6
+    },
+    "userAgent": "curl/8.12.1",
+    "ip": "127.0.0.1"
+  },
+  {
+    "timestamp": "2025-07-31T11:22:41.146Z",
+    "type": "registrations",
+    "requestId": "bb229772-96ff-4ff7-bafe-2e1aa7570fc0",
+    "action": "registration_failed",
+    "reason": "user_already_exists",
+    "email": "test@example.com",
+    "duration": 2
+  },
+  {
+    "timestamp": "2025-07-31T11:22:44.768Z",
+    "type": "registrations",
+    "requestId": "699e9b21-4690-4b9d-ae55-d170c43ce5ea",
+    "action": "register_attempt",
+    "requestBody": {
+      "name": "New Test User",
+      "email": "newtest@example.com",
+      "passwordLength": 6
+    },
+    "userAgent": "curl/8.12.1",
+    "ip": "127.0.0.1"
+  },
+  {
+    "timestamp": "2025-07-31T11:22:44.852Z",
+    "type": "registrations",
+    "requestId": "699e9b21-4690-4b9d-ae55-d170c43ce5ea",
+    "action": "registration_successful",
+    "userId": "10411458-0a48-4a75-8f8e-dbb05c0530c1",
+    "email": "newtest@example.com",
+    "name": "New Test User",
+    "tokenGenerated": true,
+    "duration": 84
+  }
+]

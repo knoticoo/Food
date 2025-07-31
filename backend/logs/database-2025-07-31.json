@@ -1,0 +1,90 @@
+[
+  {
+    "timestamp": "2025-07-31T11:21:29.133Z",
+    "type": "database",
+    "action": "database_integrity_check_result",
+    "integrity": {
+      "integrity_check": "ok"
+    }
+  },
+  {
+    "timestamp": "2025-07-31T11:21:29.135Z",
+    "type": "database",
+    "action": "get_database_stats_result",
+    "stats": {
+      "userCount": 4
+    }
+  },
+  {
+    "timestamp": "2025-07-31T11:21:29.136Z",
+    "type": "database",
+    "action": "get_recent_users_result",
+    "limit": 10,
+    "userCount": 4,
+    "users": [
+      {
+        "id": "546a4122-c929-495c-b2bd-acdf56562c9a",
+        "name": "Debug Test",
+        "email": "debug@example.com",
+        "createdAt": "2025-07-31 09:51:50"
+      },
+      {
+        "id": "a3659e0b-3e3f-44fb-a36f-add342372ab7",
+        "name": "Test User 2",
+        "email": "test2@example.com",
+        "createdAt": "2025-07-31 09:50:36"
+      },
+      {
+        "id": "9bad9636-5ccb-4596-8b0c-8e315ca0182c",
+        "name": "New User",
+        "email": "newuser@example.com",
+        "createdAt": "2025-07-31 09:50:01"
+      },
+      {
+        "id": "26a49daa-6e29-4bbf-abee-c7e865f9d3cf",
+        "name": "Test User",
+        "email": "test@example.com",
+        "createdAt": "2025-07-31 03:24:53"
+      }
+    ]
+  },
+  {
+    "timestamp": "2025-07-31T11:21:29.149Z",
+    "type": "database",
+    "action": "check_user_exists_result",
+    "email": "all",
+    "userExists": false,
+    "userData": null
+  },
+  {
+    "timestamp": "2025-07-31T11:22:44.842Z",
+    "type": "database",
+    "requestId": "699e9b21-4690-4b9d-ae55-d170c43ce5ea",
+    "action": "password_hashed",
+    "email": "newtest@example.com",
+    "passwordLength": 6,
+    "duration": 74
+  },
+  {
+    "timestamp": "2025-07-31T11:22:44.853Z",
+    "type": "database",
+    "action": "check_user_exists_result",
+    "email": "newtest@example.com",
+    "userExists": true,
+    "userData": {
+      "id": "10411458-0a48-4a75-8f8e-dbb05c0530c1",
+      "name": "New Test User",
+      "email": "newtest@example.com",
+      "createdAt": "2025-07-31 11:22:44"
+    }
+  },
+  {
+    "timestamp": "2025-07-31T11:22:44.853Z",
+    "type": "database",
+    "requestId": "699e9b21-4690-4b9d-ae55-d170c43ce5ea",
+    "action": "user_creation_verified",
+    "userId": "10411458-0a48-4a75-8f8e-dbb05c0530c1",
+    "email": "newtest@example.com",
+    "verification": "success"
+  }
+]
