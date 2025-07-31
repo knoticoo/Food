@@ -1,20 +1,109 @@
-import React, { useState } from 'react';
-import { format, subDays, startOfWeek, endOfWeek } from 'date-fns';
+import React, { useState, useEffect } from 'react';
+import { format, subDays, startOfWeek, subWeeks, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import { 
   Calendar, 
   Clock, 
-  TrendingUp, 
+  CheckCircle, 
+  AlertCircle,
   Filter,
+  Search,
+  TrendingUp,
+  BarChart3,
   Download,
-  BarChart3
+  Eye,
+  CalendarDays,
+  Activity,
+  Target,
+  Star,
+  StarOff
 } from 'lucide-react';
 import { usePetContext } from '../context/PetContext';
+import { useNotification } from '../context/NotificationContext';
+import { useTheme } from '../context/ThemeContext';
+import { Task, TaskLog } from '../types';
+import { tasksAPI, taskLogsAPI, analyticsAPI } from '../utils/api';
+import Modal from '../components/ui/Modal';
 
 const History: React.FC = () => {
-  const { state } = usePetContext();
-  const [selectedPeriod, setSelectedPeriod] = useState('week');
+  const { state, dispatch } = usePetContext();
+  const { showNotification } = useNotification();
+  const { theme, toggleTheme } = useTheme();
+  
+  const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'custom'>('week');
+  const [customStartDate, setCustomStartDate] = useState(format(subDays(new Date(), 7), 'yyyy-MM-dd'));
+  const [customEndDate, setCustomEndDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [filterPet, setFilterPet] = useState<string>('all');
+  const [filterType, setFilterType] = useState<string>('all');
+  const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [showTaskDetails, setShowTaskDetails] = useState(false);
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [taskLogs, setTaskLogs] = useState<TaskLog[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [analytics, setAnalytics] = useState<any>(null);
+
+  useEffect(() => {
+    loadHistoryData();
+  }, [selectedPeriod, customStartDate, customEndDate, filterPet, filterType, filterStatus, searchTerm]);
+
+  const loadHistoryData = async () => {
+    try {
+      setLoading(true);
+      
+      const startDate = getStartDate();
+      const endDate = getEndDate();
+      
+      const params: any = {
+        startDate: format(startDate, 'yyyy-MM-dd'),
+        endDate: format(endDate, 'yyyy-MM-dd'),
+        petId: filterPet !== 'all' ? filterPet : undefined,
+        type: filterType !== 'all' ? filterType : undefined,
+        status: filterStatus !== 'all' ? filterStatus : undefined
+      };
+      
+      const [tasks, logs, analyticsData] = await Promise.all([
+        tasksAPI.getAll(params),
+        taskLogsAPI.getAll(params),
+        analyticsAPI.getTaskAnalytics()
+      ]);
+      
+      dispatch({ type: 'SET_TASKS', payload: tasks });
+      setTaskLogs(logs);
+      setAnalytics(analyticsData);
+    } catch (error) {
+      showNotification('error', 'Error', 'Failed to load history data');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getStartDate = () => {
+    switch (selectedPeriod) {
+      case 'week':
+        return startOfWeek(subWeeks(new Date(), 1), { locale: ru });
+      case 'month':
+        return startOfMonth(subMonths(new Date(), 1));
+      case 'custom':
+        return new Date(customStartDate);
+      default:
+        return startOfWeek(subWeeks(new Date(), 1), { locale: ru });
+    }
+  };
+
+  const getEndDate = () => {
+    switch (selectedPeriod) {
+      case 'week':
+        return new Date();
+      case 'month':
+        return endOfMonth(new Date());
+      case 'custom':
+        return new Date(customEndDate);
+      default:
+        return new Date();
+    }
+  };
 
   const getTaskIcon = (type: string) => {
     switch (type) {
@@ -42,241 +131,431 @@ const History: React.FC = () => {
     }
   };
 
-  const getCompletedTasks = () => {
-    const now = new Date();
-    let startDate: Date;
-    
-    switch (selectedPeriod) {
-      case 'week':
-        startDate = startOfWeek(now, { locale: ru });
-        break;
-      case 'month':
-        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-        break;
-      default:
-        startDate = subDays(now, 7);
+  const getPriorityIcon = (priority: string) => {
+    switch (priority) {
+      case 'high': return <Star className="text-red-500" size={16} />;
+      case 'medium': return <Star className="text-yellow-500" size={16} />;
+      case 'low': return <StarOff className="text-gray-400" size={16} />;
+      default: return null;
     }
-
-    return state.tasks
-      .filter(task => task.completedAt && new Date(task.completedAt) >= startDate)
-      .filter(task => filterPet === 'all' || task.petId === filterPet)
-      .sort((a, b) => new Date(b.completedAt!).getTime() - new Date(a.completedAt!).getTime());
   };
 
-  const getStats = () => {
-    const completedTasks = getCompletedTasks();
-    const totalTasks = completedTasks.length;
+  const getTaskStatus = (task: Task) => {
+    if (task.completedAt) return 'completed';
+    const now = new Date();
+    const taskTime = new Date(task.scheduledTime);
+    return taskTime < now ? 'overdue' : 'pending';
+  };
+
+  const getFilteredTasks = () => {
+    const startDate = getStartDate();
+    const endDate = getEndDate();
     
-    const stats = {
-      total: totalTasks,
-      byType: {} as Record<string, number>,
-      byPet: {} as Record<string, number>,
-      averagePerDay: 0,
-    };
-
-    completedTasks.forEach(task => {
-      // Count by type
-      stats.byType[task.type] = (stats.byType[task.type] || 0) + 1;
+    return state.tasks.filter(task => {
+      const taskDate = new Date(task.scheduledTime);
+      const isInPeriod = taskDate >= startDate && taskDate <= endDate;
+      const matchesPet = filterPet === 'all' || task.petId === filterPet;
+      const matchesType = filterType === 'all' || task.type === filterType;
+      const matchesStatus = filterStatus === 'all' || getTaskStatus(task) === filterStatus;
+      const matchesSearch = task.title.toLowerCase().includes(searchTerm.toLowerCase());
       
-      // Count by pet
-      stats.byPet[task.petId] = (stats.byPet[task.petId] || 0) + 1;
+      return isInPeriod && matchesPet && matchesType && matchesStatus && matchesSearch;
     });
-
-    // Calculate average per day
-    const daysDiff = Math.ceil((new Date().getTime() - subDays(new Date(), 7).getTime()) / (1000 * 60 * 60 * 24));
-    stats.averagePerDay = daysDiff > 0 ? Math.round(totalTasks / daysDiff * 10) / 10 : 0;
-
-    return stats;
   };
 
-  const completedTasks = getCompletedTasks();
-  const stats = getStats();
+  const getCompletionRate = () => {
+    const tasks = getFilteredTasks();
+    const completed = tasks.filter(task => task.completedAt);
+    return tasks.length > 0 ? Math.round((completed.length / tasks.length) * 100) : 0;
+  };
+
+  const getTasksByType = () => {
+    const tasks = getFilteredTasks();
+    const typeStats: { [key: string]: number } = {};
+    
+    tasks.forEach(task => {
+      typeStats[task.type] = (typeStats[task.type] || 0) + 1;
+    });
+    
+    return Object.entries(typeStats).map(([type, count]) => ({
+      type,
+      count,
+      name: getTaskTypeName(type)
+    }));
+  };
+
+  const openTaskDetails = async (task: Task) => {
+    setSelectedTask(task);
+    setShowTaskDetails(true);
+    
+    try {
+      const logs = await taskLogsAPI.getAll({ taskId: task.id });
+      setTaskLogs(logs);
+    } catch (error) {
+      showNotification('error', 'Error', 'Failed to load task details');
+    }
+  };
+
+  const exportHistory = () => {
+    const tasks = getFilteredTasks();
+    const exportData = {
+      period: selectedPeriod,
+      startDate: format(getStartDate(), 'yyyy-MM-dd'),
+      endDate: format(getEndDate(), 'yyyy-MM-dd'),
+      tasks: tasks.map(task => ({
+        id: task.id,
+        title: task.title,
+        type: task.type,
+        scheduledTime: task.scheduledTime,
+        completedAt: task.completedAt,
+        priority: task.priority,
+        petName: state.pets.find(p => p.id === task.petId)?.name
+      })),
+      statistics: {
+        total: tasks.length,
+        completed: tasks.filter(t => t.completedAt).length,
+        completionRate: getCompletionRate(),
+        byType: getTasksByType()
+      }
+    };
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `pet-care-history-${format(new Date(), 'yyyy-MM-dd')}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showNotification('success', 'History Exported', 'History data has been exported successfully');
+  };
+
+  const tasks = getFilteredTasks();
+  const completionRate = getCompletionRate();
+  const tasksByType = getTasksByType();
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="loading"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">История активности</h1>
+          <h1 className="text-3xl font-bold text-text-primary">История</h1>
           <p className="text-text-secondary mt-1">
-            Просматривайте выполненные задачи и статистику
+            Просмотр истории задач и аналитика
           </p>
         </div>
-        <button className="btn btn-secondary">
-          <Download size={16} />
-          Экспорт
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={toggleTheme}
+            className="theme-toggle"
+            title={`Switch to ${theme === 'light' ? 'dark' : 'light'} mode`}
+          >
+            {theme === 'light' ? '🌙' : '☀️'}
+          </button>
+          <button
+            onClick={exportHistory}
+            className="btn btn-secondary"
+          >
+            <Download size={20} />
+            Экспорт
+          </button>
+        </div>
       </div>
 
-      {/* Filters */}
+      {/* Period Selection */}
       <div className="card">
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-text-primary">Период</h2>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="btn btn-secondary btn-sm"
+          >
             <Filter size={16} />
-            <span className="text-sm font-medium">Фильтры:</span>
-          </div>
-          
-          <select 
-            className="input w-auto"
-            value={selectedPeriod}
-            onChange={(e) => setSelectedPeriod(e.target.value)}
-          >
-            <option value="week">Неделя</option>
-            <option value="month">Месяц</option>
-            <option value="custom">7 дней</option>
-          </select>
+            {showFilters ? 'Скрыть' : 'Показать'} фильтры
+          </button>
+        </div>
 
-          <select 
-            className="input w-auto"
-            value={filterPet}
-            onChange={(e) => setFilterPet(e.target.value)}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          <button
+            onClick={() => setSelectedPeriod('week')}
+            className={`p-3 rounded-lg border transition-colors ${
+              selectedPeriod === 'week'
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border hover:bg-surface-hover'
+            }`}
           >
-            <option value="all">Все питомцы</option>
-            {state.pets.map(pet => (
-              <option key={pet.id} value={pet.id}>{pet.name}</option>
-            ))}
-          </select>
+            <div className="text-center">
+              <CalendarDays size={20} className="mx-auto mb-2" />
+              <div className="font-medium">Неделя</div>
+              <div className="text-sm text-text-secondary">Последние 7 дней</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setSelectedPeriod('month')}
+            className={`p-3 rounded-lg border transition-colors ${
+              selectedPeriod === 'month'
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border hover:bg-surface-hover'
+            }`}
+          >
+            <div className="text-center">
+              <Calendar size={20} className="mx-auto mb-2" />
+              <div className="font-medium">Месяц</div>
+              <div className="text-sm text-text-secondary">Текущий месяц</div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setSelectedPeriod('custom')}
+            className={`p-3 rounded-lg border transition-colors ${
+              selectedPeriod === 'custom'
+                ? 'border-primary bg-primary/10 text-primary'
+                : 'border-border hover:bg-surface-hover'
+            }`}
+          >
+            <div className="text-center">
+              <BarChart3 size={20} className="mx-auto mb-2" />
+              <div className="font-medium">Произвольный</div>
+              <div className="text-sm text-text-secondary">Выберите период</div>
+            </div>
+          </button>
+
+          <div className="p-3 bg-surface-hover rounded-lg">
+            <div className="text-center">
+              <Target size={20} className="mx-auto mb-2 text-success" />
+              <div className="font-medium text-success">{completionRate}%</div>
+              <div className="text-sm text-text-secondary">Выполнено</div>
+            </div>
+          </div>
+        </div>
+
+        {selectedPeriod === 'custom' && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Начальная дата</label>
+              <input
+                type="date"
+                className="input"
+                value={customStartDate}
+                onChange={(e) => setCustomStartDate(e.target.value)}
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium mb-2">Конечная дата</label>
+              <input
+                type="date"
+                className="input"
+                value={customEndDate}
+                onChange={(e) => setCustomEndDate(e.target.value)}
+              />
+            </div>
+          </div>
+        )}
+
+        {showFilters && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+            <div>
+              <label className="block text-sm font-medium mb-2">Питомец</label>
+              <select
+                className="input"
+                value={filterPet}
+                onChange={(e) => setFilterPet(e.target.value)}
+              >
+                <option value="all">Все питомцы</option>
+                {state.pets.map(pet => (
+                  <option key={pet.id} value={pet.id}>{pet.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Тип задачи</label>
+              <select
+                className="input"
+                value={filterType}
+                onChange={(e) => setFilterType(e.target.value)}
+              >
+                <option value="all">Все типы</option>
+                <option value="feeding">Кормление</option>
+                <option value="walk">Прогулка</option>
+                <option value="play">Игра</option>
+                <option value="treat">Лакомство</option>
+                <option value="medication">Лекарство</option>
+                <option value="grooming">Уход</option>
+                <option value="vet">Ветеринар</option>
+                <option value="other">Другое</option>
+              </select>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Статус</label>
+              <select
+                className="input"
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+              >
+                <option value="all">Все статусы</option>
+                <option value="completed">Выполнено</option>
+                <option value="pending">Ожидает</option>
+                <option value="overdue">Просрочено</option>
+              </select>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center gap-2 flex-1 max-w-xs mt-4">
+          <Search size={16} className="text-text-muted" />
+          <input
+            type="text"
+            placeholder="Поиск задач..."
+            className="input"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      {/* Statistics */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <div className="card">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-primary/10 rounded-lg">
-              <TrendingUp className="text-primary" size={24} />
-            </div>
+          <div className="flex items-center justify-between">
             <div>
-              <div className="text-2xl font-bold">{stats.total}</div>
-              <div className="text-sm text-text-secondary">Всего выполнено</div>
+              <p className="text-sm font-medium text-text-secondary">Всего задач</p>
+              <p className="text-2xl font-bold text-text-primary">{tasks.length}</p>
+            </div>
+            <div className="p-3 bg-primary/10 rounded-full">
+              <Activity className="text-primary" size={24} />
             </div>
           </div>
         </div>
 
         <div className="card">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-success/10 rounded-lg">
-              <Calendar className="text-success" size={24} />
-            </div>
+          <div className="flex items-center justify-between">
             <div>
-              <div className="text-2xl font-bold">{stats.averagePerDay}</div>
-              <div className="text-sm text-text-secondary">В день</div>
+              <p className="text-sm font-medium text-text-secondary">Выполнено</p>
+              <p className="text-2xl font-bold text-text-primary">
+                {tasks.filter(task => task.completedAt).length}
+              </p>
+            </div>
+            <div className="p-3 bg-success/10 rounded-full">
+              <CheckCircle className="text-success" size={24} />
             </div>
           </div>
         </div>
 
         <div className="card">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-warning/10 rounded-lg">
-              <BarChart3 className="text-warning" size={24} />
-            </div>
+          <div className="flex items-center justify-between">
             <div>
-              <div className="text-2xl font-bold">{Object.keys(stats.byType).length}</div>
-              <div className="text-sm text-text-secondary">Типов задач</div>
+              <p className="text-sm font-medium text-text-secondary">Процент выполнения</p>
+              <p className="text-2xl font-bold text-text-primary">{completionRate}%</p>
             </div>
-          </div>
-        </div>
-
-        <div className="card">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-info/10 rounded-lg">
-              <Clock className="text-info" size={24} />
-            </div>
-            <div>
-              <div className="text-2xl font-bold">{state.pets.length}</div>
-              <div className="text-sm text-text-secondary">Питомцев</div>
+            <div className="p-3 bg-info/10 rounded-full">
+              <TrendingUp className="text-info" size={24} />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Activity by Type */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      {/* Analytics */}
+      {tasksByType.length > 0 && (
         <div className="card">
-          <h2 className="text-lg font-semibold mb-4">Активность по типам</h2>
-          <div className="space-y-3">
-            {Object.entries(stats.byType)
-              .sort(([,a], [,b]) => b - a)
-              .map(([type, count]) => (
+          <h2 className="text-lg font-semibold text-text-primary mb-4">Задачи по типам</h2>
+          <div className="space-y-4">
+            {tasksByType.map(({ type, count, name }) => {
+              const percentage = tasks.length > 0 ? Math.round((count / tasks.length) * 100) : 0;
+              
+              return (
                 <div key={type} className="flex items-center justify-between p-3 bg-surface-hover rounded-lg">
                   <div className="flex items-center gap-3">
                     <span className="text-xl">{getTaskIcon(type)}</span>
                     <div>
-                      <div className="font-medium">{getTaskTypeName(type)}</div>
-                      <div className="text-sm text-text-secondary">
-                        {Math.round((count / stats.total) * 100)}% от общего
-                      </div>
+                      <p className="font-medium text-text-primary">{name}</p>
+                      <p className="text-sm text-text-secondary">{count} задач</p>
                     </div>
                   </div>
-                  <div className="text-lg font-bold">{count}</div>
+                  <div className="text-right">
+                    <p className="font-semibold text-text-primary">{percentage}%</p>
+                    <div className="w-20 h-2 bg-gray-200 rounded-full mt-1">
+                      <div 
+                        className="h-2 bg-primary rounded-full"
+                        style={{ width: `${percentage}%` }}
+                      ></div>
+                    </div>
+                  </div>
                 </div>
-              ))}
+              );
+            })}
           </div>
         </div>
+      )}
 
-        <div className="card">
-          <h2 className="text-lg font-semibold mb-4">Активность по питомцам</h2>
-          <div className="space-y-3">
-            {Object.entries(stats.byPet)
-              .sort(([,a], [,b]) => b - a)
-              .map(([petId, count]) => {
-                const pet = state.pets.find(p => p.id === petId);
-                return (
-                  <div key={petId} className="flex items-center justify-between p-3 bg-surface-hover rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                        <span className="text-sm font-medium">{pet?.name?.charAt(0)}</span>
-                      </div>
-                      <div>
-                        <div className="font-medium">{pet?.name}</div>
-                        <div className="text-sm text-text-secondary">
-                          {Math.round((count / stats.total) * 100)}% от общего
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-lg font-bold">{count}</div>
-                  </div>
-                );
-              })}
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Activity */}
+      {/* Task History */}
       <div className="card">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Недавняя активность</h2>
-          <span className="badge badge-primary">{completedTasks.length}</span>
+          <h2 className="text-lg font-semibold text-text-primary">История задач</h2>
+          <span className="text-sm text-text-secondary">{tasks.length} задач</span>
         </div>
 
-        {completedTasks.length === 0 ? (
+        {tasks.length === 0 ? (
           <div className="text-center py-8 text-text-secondary">
             <Calendar size={48} className="mx-auto mb-3 opacity-50" />
-            <p>Нет выполненных задач за выбранный период</p>
+            <p>Нет задач за выбранный период</p>
           </div>
         ) : (
           <div className="space-y-3">
-            {completedTasks.slice(0, 20).map((task) => {
+            {tasks.map((task) => {
               const pet = state.pets.find(p => p.id === task.petId);
+              const status = getTaskStatus(task);
+              
               return (
-                <div key={task.id} className="flex items-center justify-between p-4 bg-surface-hover rounded-lg">
+                <div key={task.id} className="flex items-center justify-between p-4 bg-surface-hover rounded-lg hover:shadow-md transition-all duration-200">
                   <div className="flex items-center gap-3">
                     <span className="text-2xl">{getTaskIcon(task.type)}</span>
-                    <div>
-                      <div className="font-medium">{task.title}</div>
-                      <div className="text-sm text-text-secondary">
-                        {pet?.name} • {getTaskTypeName(task.type)}
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-medium text-text-primary">{task.title}</h3>
+                        {getPriorityIcon(task.priority)}
+                        {status === 'completed' && <CheckCircle size={16} className="text-green-500" />}
+                        {status === 'overdue' && <AlertCircle size={16} className="text-red-500" />}
                       </div>
+                      <div className="text-sm text-text-secondary">
+                        {getTaskTypeName(task.type)} • {pet?.name}
+                      </div>
+                      {task.description && (
+                        <p className="text-sm text-text-muted mt-1">{task.description}</p>
+                      )}
                     </div>
                   </div>
-                  
-                  <div className="text-right">
-                    <div className="text-sm font-medium">
-                      {format(new Date(task.completedAt!), 'dd.MM.yyyy')}
+
+                  <div className="flex items-center gap-3">
+                    <div className="text-right">
+                      <div className="text-sm font-medium text-text-primary">
+                        {format(new Date(task.scheduledTime), 'dd.MM.yyyy HH:mm')}
+                      </div>
+                      {task.completedAt && (
+                        <div className="text-xs text-text-secondary">
+                          Выполнено: {format(new Date(task.completedAt), 'dd.MM.yyyy HH:mm')}
+                        </div>
+                      )}
                     </div>
-                    <div className="text-xs text-text-secondary">
-                      {format(new Date(task.completedAt!), 'HH:mm')}
-                    </div>
+
+                    <button
+                      onClick={() => openTaskDetails(task)}
+                      className="btn btn-secondary btn-sm"
+                    >
+                      <Eye size={16} />
+                    </button>
                   </div>
                 </div>
               );
@@ -284,6 +563,65 @@ const History: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Task Details Modal */}
+      {selectedTask && (
+        <Modal
+          isOpen={showTaskDetails}
+          onClose={() => setShowTaskDetails(false)}
+          title={`${selectedTask.title} - Детали`}
+          size="lg"
+        >
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Основная информация</h3>
+                <div className="space-y-2">
+                  <p><span className="font-medium">Название:</span> {selectedTask.title}</p>
+                  <p><span className="font-medium">Тип:</span> {getTaskTypeName(selectedTask.type)}</p>
+                  <p><span className="font-medium">Приоритет:</span> {selectedTask.priority}</p>
+                  <p><span className="font-medium">Запланировано:</span> {format(new Date(selectedTask.scheduledTime), 'dd.MM.yyyy HH:mm')}</p>
+                  {selectedTask.description && <p><span className="font-medium">Описание:</span> {selectedTask.description}</p>}
+                  {selectedTask.notes && <p><span className="font-medium">Заметки:</span> {selectedTask.notes}</p>}
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Статус</h3>
+                <div className="space-y-2">
+                  <p><span className="font-medium">Статус:</span> {getTaskStatus(selectedTask)}</p>
+                  {selectedTask.completedAt && <p><span className="font-medium">Выполнено:</span> {format(new Date(selectedTask.completedAt), 'dd.MM.yyyy HH:mm')}</p>}
+                  {selectedTask.isRecurring && <p><span className="font-medium">Повторение:</span> {selectedTask.recurrencePattern}</p>}
+                </div>
+              </div>
+            </div>
+
+            {taskLogs.length > 0 && (
+              <div>
+                <h3 className="text-lg font-semibold mb-3">История выполнения</h3>
+                <div className="space-y-3">
+                  {taskLogs.map((log) => (
+                    <div key={log.id} className="card">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold">Выполнено {format(new Date(log.completedAt), 'dd.MM.yyyy HH:mm')}</p>
+                          {log.notes && <p className="text-text-secondary text-sm mt-1">{log.notes}</p>}
+                          <div className="flex gap-4 mt-2 text-xs text-text-muted">
+                            {log.duration && <span>Длительность: {log.duration} мин</span>}
+                            {log.quantity && <span>Количество: {log.quantity}</span>}
+                            {log.mood && <span>Настроение: {log.mood}</span>}
+                          </div>
+                        </div>
+                        <CheckCircle size={20} className="text-green-500" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };

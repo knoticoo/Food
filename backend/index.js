@@ -6,6 +6,7 @@ const sqlite3 = require('sqlite3').verbose();
 const { v4: uuidv4 } = require('uuid');
 const { body, validationResult } = require('express-validator');
 const path = require('path');
+const crypto = require('crypto'); // Added for crypto.randomUUID()
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -36,10 +37,11 @@ function initializeDatabase() {
       email TEXT UNIQUE NOT NULL,
       password TEXT NOT NULL,
       avatar TEXT,
+      preferences TEXT DEFAULT '{}',
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
-    // Pets table
+    // Pets table - enhanced with more fields
     db.run(`CREATE TABLE IF NOT EXISTS pets (
       id TEXT PRIMARY KEY,
       userId TEXT NOT NULL,
@@ -49,17 +51,64 @@ function initializeDatabase() {
       age INTEGER,
       weight REAL,
       avatar TEXT,
+      favoriteToys TEXT,
+      allergies TEXT,
+      specialNeeds TEXT,
+      adoptionDate TEXT,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (userId) REFERENCES users (id)
     )`);
 
-    // Tasks table
+    // Pet photos table
+    db.run(`CREATE TABLE IF NOT EXISTS pet_photos (
+      id TEXT PRIMARY KEY,
+      petId TEXT NOT NULL,
+      photoUrl TEXT NOT NULL,
+      caption TEXT,
+      uploadedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (petId) REFERENCES pets (id)
+    )`);
+
+    // Pet milestones table
+    db.run(`CREATE TABLE IF NOT EXISTS pet_milestones (
+      id TEXT PRIMARY KEY,
+      petId TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      milestoneDate TEXT NOT NULL,
+      type TEXT NOT NULL,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (petId) REFERENCES pets (id)
+    )`);
+
+    // Pet weight tracking table
+    db.run(`CREATE TABLE IF NOT EXISTS pet_weight_logs (
+      id TEXT PRIMARY KEY,
+      petId TEXT NOT NULL,
+      weight REAL NOT NULL,
+      measuredAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      notes TEXT,
+      FOREIGN KEY (petId) REFERENCES pets (id)
+    )`);
+
+    // Pet mood tracking table
+    db.run(`CREATE TABLE IF NOT EXISTS pet_mood_logs (
+      id TEXT PRIMARY KEY,
+      petId TEXT NOT NULL,
+      mood TEXT NOT NULL,
+      notes TEXT,
+      loggedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (petId) REFERENCES pets (id)
+    )`);
+
+    // Tasks table - enhanced with priority and attachments
     db.run(`CREATE TABLE IF NOT EXISTS tasks (
       id TEXT PRIMARY KEY,
       petId TEXT NOT NULL,
       title TEXT NOT NULL,
       description TEXT,
       type TEXT NOT NULL,
+      priority TEXT DEFAULT 'medium',
       scheduledTime DATETIME NOT NULL,
       completedAt DATETIME,
       isRecurring BOOLEAN DEFAULT 0,
@@ -67,6 +116,28 @@ function initializeDatabase() {
       notes TEXT,
       createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
       FOREIGN KEY (petId) REFERENCES pets (id)
+    )`);
+
+    // Task attachments table
+    db.run(`CREATE TABLE IF NOT EXISTS task_attachments (
+      id TEXT PRIMARY KEY,
+      taskId TEXT NOT NULL,
+      fileUrl TEXT NOT NULL,
+      fileName TEXT NOT NULL,
+      fileType TEXT,
+      uploadedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (taskId) REFERENCES tasks (id)
+    )`);
+
+    // Task comments table
+    db.run(`CREATE TABLE IF NOT EXISTS task_comments (
+      id TEXT PRIMARY KEY,
+      taskId TEXT NOT NULL,
+      userId TEXT NOT NULL,
+      comment TEXT NOT NULL,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (taskId) REFERENCES tasks (id),
+      FOREIGN KEY (userId) REFERENCES users (id)
     )`);
 
     // Task logs table
@@ -83,6 +154,31 @@ function initializeDatabase() {
       FOREIGN KEY (petId) REFERENCES pets (id)
     )`);
 
+    // Notifications table
+    db.run(`CREATE TABLE IF NOT EXISTS notifications (
+      id TEXT PRIMARY KEY,
+      userId TEXT NOT NULL,
+      type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      message TEXT NOT NULL,
+      isRead BOOLEAN DEFAULT 0,
+      relatedId TEXT,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (userId) REFERENCES users (id)
+    )`);
+
+    // Pet achievements table
+    db.run(`CREATE TABLE IF NOT EXISTS pet_achievements (
+      id TEXT PRIMARY KEY,
+      petId TEXT NOT NULL,
+      type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      earnedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+      icon TEXT,
+      FOREIGN KEY (petId) REFERENCES pets (id)
+    )`);
+
     // Shared access table
     db.run(`CREATE TABLE IF NOT EXISTS shared_access (
       id TEXT PRIMARY KEY,
@@ -93,6 +189,47 @@ function initializeDatabase() {
       FOREIGN KEY (petId) REFERENCES pets (id),
       FOREIGN KEY (userId) REFERENCES users (id)
     )`);
+
+    // Pet care tips table
+    db.run(`CREATE TABLE IF NOT EXISTS pet_care_tips (
+      id TEXT PRIMARY KEY,
+      type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      content TEXT NOT NULL,
+      category TEXT NOT NULL,
+      isActive BOOLEAN DEFAULT 1,
+      createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
+    )`);
+
+    // Insert sample data
+    db.run(`INSERT OR IGNORE INTO pet_care_tips (id, type, title, content, category) VALUES 
+      ('tip-1', 'dog', 'Регулярные прогулки', 'Собаки нуждаются в ежедневных прогулках для физической активности и социализации. Рекомендуется минимум 30 минут в день.', 'exercise'),
+      ('tip-2', 'cat', 'Правильное питание', 'Кошки должны получать сбалансированное питание с достаточным количеством белка. Всегда обеспечивайте свежую воду.', 'nutrition'),
+      ('tip-3', 'dog', 'Уход за шерстью', 'Регулярное расчесывание помогает поддерживать здоровье шерсти и кожи вашей собаки.', 'grooming'),
+      ('tip-4', 'cat', 'Игровая активность', 'Кошки нуждаются в умственной стимуляции. Используйте игрушки и игровые сессии для поддержания активности.', 'activity'),
+      ('tip-5', 'dog', 'Социализация', 'Приучайте щенка к общению с другими собаками и людьми с раннего возраста.', 'training')
+    `);
+
+    // Insert sample notifications
+    db.run(`INSERT OR IGNORE INTO notifications (id, userId, type, title, message) VALUES 
+      ('notif-1', 'user-1', 'reminder', 'Время кормления', 'Не забудьте покормить Бобика в 18:00'),
+      ('notif-2', 'user-1', 'achievement', 'Достижение!', 'Вы выполнили 10 задач подряд!'),
+      ('notif-3', 'user-1', 'info', 'Новый совет', 'Добавлен новый совет по уходу за питомцем')
+    `);
+
+    // Insert sample task logs
+    db.run(`INSERT OR IGNORE INTO task_logs (id, taskId, petId, completedAt, notes, duration, quantity, mood) VALUES 
+      ('log-1', 'task-1', 'pet-1', '2024-01-15 08:00:00', 'Собака хорошо поела', 15, 1, 'happy'),
+      ('log-2', 'task-2', 'pet-1', '2024-01-15 10:30:00', 'Прогулка в парке', 45, 1, 'excited'),
+      ('log-3', 'task-3', 'pet-2', '2024-01-15 12:00:00', 'Кошка поела сухой корм', 10, 1, 'calm')
+    `);
+
+    // Insert sample pet achievements
+    db.run(`INSERT OR IGNORE INTO pet_achievements (id, petId, type, title, description, icon) VALUES 
+      ('ach-1', 'pet-1', 'streak', 'Недельная серия', 'Выполнено 7 задач подряд', '🔥'),
+      ('ach-2', 'pet-1', 'care', 'Заботливый хозяин', 'Выполнено 50 задач по уходу', '❤️'),
+      ('ach-3', 'pet-2', 'activity', 'Активный питомец', 'Завершено 30 игровых сессий', '🎾')
+    `);
   });
 }
 
@@ -216,11 +353,11 @@ app.post('/api/pets', [
   body('type').isIn(['dog', 'cat', 'bird', 'fish', 'other']).withMessage('Valid pet type is required'),
   handleValidationErrors
 ], (req, res) => {
-  const { name, type, breed, age, weight, avatar } = req.body;
+  const { name, type, breed, age, weight, avatar, favoriteToys, allergies, specialNeeds, adoptionDate } = req.body;
   const petId = uuidv4();
 
-  db.run('INSERT INTO pets (id, userId, name, type, breed, age, weight, avatar) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [petId, req.user.id, name, type, breed, age, weight, avatar], function(err) {
+  db.run('INSERT INTO pets (id, userId, name, type, breed, age, weight, avatar, favoriteToys, allergies, specialNeeds, adoptionDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [petId, req.user.id, name, type, breed, age, weight, avatar, favoriteToys, allergies, specialNeeds, adoptionDate], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Error creating pet' });
     }
@@ -241,10 +378,10 @@ app.put('/api/pets/:id', [
   handleValidationErrors
 ], (req, res) => {
   const { id } = req.params;
-  const { name, type, breed, age, weight, avatar } = req.body;
+  const { name, type, breed, age, weight, avatar, favoriteToys, allergies, specialNeeds, adoptionDate } = req.body;
 
-  db.run('UPDATE pets SET name = ?, type = ?, breed = ?, age = ?, weight = ?, avatar = ? WHERE id = ? AND userId = ?',
-    [name, type, breed, age, weight, avatar, id, req.user.id], function(err) {
+  db.run('UPDATE pets SET name = ?, type = ?, breed = ?, age = ?, weight = ?, avatar = ?, favoriteToys = ?, allergies = ?, specialNeeds = ?, adoptionDate = ? WHERE id = ? AND userId = ?',
+    [name, type, breed, age, weight, avatar, favoriteToys, allergies, specialNeeds, adoptionDate, id, req.user.id], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Error updating pet' });
     }
@@ -278,9 +415,154 @@ app.delete('/api/pets/:id', authenticateToken, (req, res) => {
   });
 });
 
+// Pet photos routes
+app.get('/api/pets/:id/photos', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  
+  db.all('SELECT * FROM pet_photos WHERE petId = ? ORDER BY uploadedAt DESC', [id], (err, photos) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(photos);
+  });
+});
+
+app.post('/api/pets/:id/photos', [
+  authenticateToken,
+  body('photoUrl').notEmpty().withMessage('Photo URL is required'),
+  handleValidationErrors
+], (req, res) => {
+  const { id } = req.params;
+  const { photoUrl, caption } = req.body;
+  const photoId = uuidv4();
+
+  db.run('INSERT INTO pet_photos (id, petId, photoUrl, caption) VALUES (?, ?, ?, ?)',
+    [photoId, id, photoUrl, caption], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Error uploading photo' });
+    }
+
+    db.get('SELECT * FROM pet_photos WHERE id = ?', [photoId], (err, photo) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error fetching uploaded photo' });
+      }
+      res.status(201).json(photo);
+    });
+  });
+});
+
+// Pet milestones routes
+app.get('/api/pets/:id/milestones', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  
+  db.all('SELECT * FROM pet_milestones WHERE petId = ? ORDER BY milestoneDate DESC', [id], (err, milestones) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(milestones);
+  });
+});
+
+app.post('/api/pets/:id/milestones', [
+  authenticateToken,
+  body('title').notEmpty().withMessage('Milestone title is required'),
+  body('milestoneDate').notEmpty().withMessage('Milestone date is required'),
+  handleValidationErrors
+], (req, res) => {
+  const { id } = req.params;
+  const { title, description, milestoneDate, type } = req.body;
+  const milestoneId = uuidv4();
+
+  db.run('INSERT INTO pet_milestones (id, petId, title, description, milestoneDate, type) VALUES (?, ?, ?, ?, ?, ?)',
+    [milestoneId, id, title, description, milestoneDate, type], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Error creating milestone' });
+    }
+
+    db.get('SELECT * FROM pet_milestones WHERE id = ?', [milestoneId], (err, milestone) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error fetching created milestone' });
+      }
+      res.status(201).json(milestone);
+    });
+  });
+});
+
+// Pet weight tracking routes
+app.get('/api/pets/:id/weight', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  
+  db.all('SELECT * FROM pet_weight_logs WHERE petId = ? ORDER BY measuredAt DESC', [id], (err, weightLogs) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(weightLogs);
+  });
+});
+
+app.post('/api/pets/:id/weight', [
+  authenticateToken,
+  body('weight').isFloat().withMessage('Valid weight is required'),
+  handleValidationErrors
+], (req, res) => {
+  const { id } = req.params;
+  const { weight, notes } = req.body;
+  const logId = uuidv4();
+
+  db.run('INSERT INTO pet_weight_logs (id, petId, weight, notes) VALUES (?, ?, ?, ?)',
+    [logId, id, weight, notes], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Error logging weight' });
+    }
+
+    db.get('SELECT * FROM pet_weight_logs WHERE id = ?', [logId], (err, weightLog) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error fetching weight log' });
+      }
+      res.status(201).json(weightLog);
+    });
+  });
+});
+
+// Pet mood tracking routes
+app.get('/api/pets/:id/mood', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  
+  db.all('SELECT * FROM pet_mood_logs WHERE petId = ? ORDER BY loggedAt DESC', [id], (err, moodLogs) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(moodLogs);
+  });
+});
+
+app.post('/api/pets/:id/mood', [
+  authenticateToken,
+  body('mood').notEmpty().withMessage('Mood is required'),
+  handleValidationErrors
+], (req, res) => {
+  const { id } = req.params;
+  const { mood, notes } = req.body;
+  const logId = uuidv4();
+
+  db.run('INSERT INTO pet_mood_logs (id, petId, mood, notes) VALUES (?, ?, ?, ?)',
+    [logId, id, mood, notes], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Error logging mood' });
+    }
+
+    db.get('SELECT * FROM pet_mood_logs WHERE id = ?', [logId], (err, moodLog) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error fetching mood log' });
+      }
+      res.status(201).json(moodLog);
+    });
+  });
+});
+
 // Task routes
 app.get('/api/tasks', authenticateToken, (req, res) => {
-  const { petId, date } = req.query;
+  const { petId, date, priority, type } = req.query;
   let query = 'SELECT t.*, p.name as petName FROM tasks t JOIN pets p ON t.petId = p.id WHERE p.userId = ?';
   let params = [req.user.id];
 
@@ -292,6 +574,16 @@ app.get('/api/tasks', authenticateToken, (req, res) => {
   if (date) {
     query += ' AND DATE(t.scheduledTime) = DATE(?)';
     params.push(date);
+  }
+
+  if (priority) {
+    query += ' AND t.priority = ?';
+    params.push(priority);
+  }
+
+  if (type) {
+    query += ' AND t.type = ?';
+    params.push(type);
   }
 
   query += ' ORDER BY t.scheduledTime ASC';
@@ -312,7 +604,7 @@ app.post('/api/tasks', [
   body('scheduledTime').notEmpty().withMessage('Scheduled time is required'),
   handleValidationErrors
 ], (req, res) => {
-  const { petId, title, description, type, scheduledTime, isRecurring, recurrencePattern, notes } = req.body;
+  const { petId, title, description, type, scheduledTime, isRecurring, recurrencePattern, notes, priority } = req.body;
   const taskId = uuidv4();
 
   // Verify pet belongs to user
@@ -325,8 +617,8 @@ app.post('/api/tasks', [
       return res.status(404).json({ error: 'Pet not found' });
     }
 
-    db.run('INSERT INTO tasks (id, petId, title, description, type, scheduledTime, isRecurring, recurrencePattern, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [taskId, petId, title, description, type, scheduledTime, isRecurring, recurrencePattern, notes], function(err) {
+    db.run('INSERT INTO tasks (id, petId, title, description, type, scheduledTime, isRecurring, recurrencePattern, notes, priority) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [taskId, petId, title, description, type, scheduledTime, isRecurring, recurrencePattern, notes, priority || 'medium'], function(err) {
       if (err) {
         return res.status(500).json({ error: 'Error creating task' });
       }
@@ -348,10 +640,10 @@ app.put('/api/tasks/:id', [
   handleValidationErrors
 ], (req, res) => {
   const { id } = req.params;
-  const { title, description, type, scheduledTime, isRecurring, recurrencePattern, notes, completedAt } = req.body;
+  const { title, description, type, scheduledTime, isRecurring, recurrencePattern, notes, completedAt, priority } = req.body;
 
-  db.run('UPDATE tasks SET title = ?, description = ?, type = ?, scheduledTime = ?, isRecurring = ?, recurrencePattern = ?, notes = ?, completedAt = ? WHERE id = ?',
-    [title, description, type, scheduledTime, isRecurring, recurrencePattern, notes, completedAt, id], function(err) {
+  db.run('UPDATE tasks SET title = ?, description = ?, type = ?, scheduledTime = ?, isRecurring = ?, recurrencePattern = ?, notes = ?, completedAt = ?, priority = ? WHERE id = ?',
+    [title, description, type, scheduledTime, isRecurring, recurrencePattern, notes, completedAt, priority, id], function(err) {
     if (err) {
       return res.status(500).json({ error: 'Error updating task' });
     }
@@ -382,6 +674,79 @@ app.delete('/api/tasks/:id', authenticateToken, (req, res) => {
     }
 
     res.json({ message: 'Task deleted successfully' });
+  });
+});
+
+// Task attachments routes
+app.get('/api/tasks/:id/attachments', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  
+  db.all('SELECT * FROM task_attachments WHERE taskId = ? ORDER BY uploadedAt DESC', [id], (err, attachments) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(attachments);
+  });
+});
+
+app.post('/api/tasks/:id/attachments', [
+  authenticateToken,
+  body('fileUrl').notEmpty().withMessage('File URL is required'),
+  body('fileName').notEmpty().withMessage('File name is required'),
+  handleValidationErrors
+], (req, res) => {
+  const { id } = req.params;
+  const { fileUrl, fileName, fileType } = req.body;
+  const attachmentId = uuidv4();
+
+  db.run('INSERT INTO task_attachments (id, taskId, fileUrl, fileName, fileType) VALUES (?, ?, ?, ?, ?)',
+    [attachmentId, id, fileUrl, fileName, fileType], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Error uploading attachment' });
+    }
+
+    db.get('SELECT * FROM task_attachments WHERE id = ?', [attachmentId], (err, attachment) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error fetching uploaded attachment' });
+      }
+      res.status(201).json(attachment);
+    });
+  });
+});
+
+// Task comments routes
+app.get('/api/tasks/:id/comments', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  
+  db.all('SELECT tc.*, u.name as userName FROM task_comments tc JOIN users u ON tc.userId = u.id WHERE tc.taskId = ? ORDER BY tc.createdAt ASC', [id], (err, comments) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(comments);
+  });
+});
+
+app.post('/api/tasks/:id/comments', [
+  authenticateToken,
+  body('comment').notEmpty().withMessage('Comment is required'),
+  handleValidationErrors
+], (req, res) => {
+  const { id } = req.params;
+  const { comment } = req.body;
+  const commentId = uuidv4();
+
+  db.run('INSERT INTO task_comments (id, taskId, userId, comment) VALUES (?, ?, ?, ?)',
+    [commentId, id, req.user.id, comment], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Error creating comment' });
+    }
+
+    db.get('SELECT tc.*, u.name as userName FROM task_comments tc JOIN users u ON tc.userId = u.id WHERE tc.id = ?', [commentId], (err, comment) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error fetching created comment' });
+      }
+      res.status(201).json(comment);
+    });
   });
 });
 
@@ -482,6 +847,304 @@ app.put('/api/user/profile', [
       }
       res.json(user);
     });
+  });
+});
+
+// Notifications routes
+app.get('/api/notifications', authenticateToken, (req, res) => {
+  const { isRead } = req.query;
+  let query = 'SELECT * FROM notifications WHERE userId = ?';
+  let params = [req.user.id];
+
+  if (isRead !== undefined) {
+    query += ' AND isRead = ?';
+    params.push(isRead === 'true' ? 1 : 0);
+  }
+
+  query += ' ORDER BY createdAt DESC';
+
+  db.all(query, params, (err, notifications) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(notifications);
+  });
+});
+
+app.post('/api/notifications', [
+  authenticateToken,
+  body('type').notEmpty().withMessage('Notification type is required'),
+  body('title').notEmpty().withMessage('Notification title is required'),
+  body('message').notEmpty().withMessage('Notification message is required'),
+  handleValidationErrors
+], (req, res) => {
+  const { type, title, message, relatedId } = req.body;
+  const notificationId = uuidv4();
+
+  db.run('INSERT INTO notifications (id, userId, type, title, message, relatedId) VALUES (?, ?, ?, ?, ?, ?)',
+    [notificationId, req.user.id, type, title, message, relatedId], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Error creating notification' });
+    }
+
+    db.get('SELECT * FROM notifications WHERE id = ?', [notificationId], (err, notification) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error fetching created notification' });
+      }
+      res.status(201).json(notification);
+    });
+  });
+});
+
+app.put('/api/notifications/:id/read', authenticateToken, (req, res) => {
+  const { id } = req.params;
+
+  db.run('UPDATE notifications SET isRead = 1 WHERE id = ? AND userId = ?', [id, req.user.id], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Error updating notification' });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Notification not found' });
+    }
+
+    res.json({ message: 'Notification marked as read' });
+  });
+});
+
+app.put('/api/notifications/read-all', authenticateToken, (req, res) => {
+  db.run('UPDATE notifications SET isRead = 1 WHERE userId = ?', [req.user.id], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Error updating notifications' });
+    }
+
+    res.json({ message: 'All notifications marked as read' });
+  });
+});
+
+// Pet achievements routes
+app.get('/api/pets/:id/achievements', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  
+  db.all('SELECT * FROM pet_achievements WHERE petId = ? ORDER BY earnedAt DESC', [id], (err, achievements) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(achievements);
+  });
+});
+
+app.post('/api/pets/:id/achievements', [
+  authenticateToken,
+  body('type').notEmpty().withMessage('Achievement type is required'),
+  body('title').notEmpty().withMessage('Achievement title is required'),
+  handleValidationErrors
+], (req, res) => {
+  const { id } = req.params;
+  const { type, title, description, icon } = req.body;
+  const achievementId = uuidv4();
+
+  db.run('INSERT INTO pet_achievements (id, petId, type, title, description, icon) VALUES (?, ?, ?, ?, ?, ?)',
+    [achievementId, id, type, title, description, icon], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Error creating achievement' });
+    }
+
+    db.get('SELECT * FROM pet_achievements WHERE id = ?', [achievementId], (err, achievement) => {
+      if (err) {
+        return res.status(500).json({ error: 'Error fetching created achievement' });
+      }
+      res.status(201).json(achievement);
+    });
+  });
+});
+
+// Shared access routes
+app.get('/api/pets/:id/shared', authenticateToken, (req, res) => {
+  const { id } = req.params;
+  
+  db.all('SELECT sa.*, u.name as userName, u.email as userEmail FROM shared_access sa JOIN users u ON sa.userId = u.id WHERE sa.petId = ?', [id], (err, sharedAccess) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(sharedAccess);
+  });
+});
+
+app.post('/api/pets/:id/shared', [
+  authenticateToken,
+  body('email').isEmail().withMessage('Valid email is required'),
+  body('role').isIn(['owner', 'caregiver', 'viewer']).withMessage('Valid role is required'),
+  handleValidationErrors
+], (req, res) => {
+  const { id } = req.params;
+  const { email, role } = req.body;
+
+  // Find user by email
+  db.get('SELECT id FROM users WHERE email = ?', [email], (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const sharedAccessId = uuidv4();
+
+    db.run('INSERT INTO shared_access (id, petId, userId, role) VALUES (?, ?, ?, ?)',
+      [sharedAccessId, id, user.id, role], function(err) {
+      if (err) {
+        return res.status(500).json({ error: 'Error sharing pet access' });
+      }
+
+      db.get('SELECT sa.*, u.name as userName, u.email as userEmail FROM shared_access sa JOIN users u ON sa.userId = u.id WHERE sa.id = ?', [sharedAccessId], (err, sharedAccess) => {
+        if (err) {
+          return res.status(500).json({ error: 'Error fetching shared access' });
+        }
+        res.status(201).json(sharedAccess);
+      });
+    });
+  });
+});
+
+app.delete('/api/pets/:id/shared/:userId', authenticateToken, (req, res) => {
+  const { id, userId } = req.params;
+
+  db.run('DELETE FROM shared_access WHERE petId = ? AND userId = ?', [id, userId], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Error removing shared access' });
+    }
+
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Shared access not found' });
+    }
+
+    res.json({ message: 'Shared access removed successfully' });
+  });
+});
+
+// Pet care tips routes
+app.get('/api/pet-care-tips', authenticateToken, (req, res) => {
+  const { type, category } = req.query;
+  let query = 'SELECT * FROM pet_care_tips WHERE isActive = 1';
+  let params = [];
+
+  if (type) {
+    query += ' AND type = ?';
+    params.push(type);
+  }
+
+  if (category) {
+    query += ' AND category = ?';
+    params.push(category);
+  }
+
+  query += ' ORDER BY createdAt DESC';
+
+  db.all(query, params, (err, tips) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(tips);
+  });
+});
+
+// Analytics routes
+app.get('/api/analytics/tasks', authenticateToken, (req, res) => {
+  const { startDate, endDate, petId } = req.query;
+  let query = `
+    SELECT 
+      t.type,
+      COUNT(*) as total,
+      SUM(CASE WHEN t.completedAt IS NOT NULL THEN 1 ELSE 0 END) as completed,
+      AVG(CASE WHEN t.completedAt IS NOT NULL THEN 1 ELSE 0 END) * 100 as completionRate
+    FROM tasks t 
+    JOIN pets p ON t.petId = p.id 
+    WHERE p.userId = ?
+  `;
+  let params = [req.user.id];
+
+  if (startDate) {
+    query += ' AND DATE(t.scheduledTime) >= DATE(?)';
+    params.push(startDate);
+  }
+
+  if (endDate) {
+    query += ' AND DATE(t.scheduledTime) <= DATE(?)';
+    params.push(endDate);
+  }
+
+  if (petId) {
+    query += ' AND t.petId = ?';
+    params.push(petId);
+  }
+
+  query += ' GROUP BY t.type';
+
+  db.all(query, params, (err, stats) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(stats);
+  });
+});
+
+app.get('/api/analytics/pets', authenticateToken, (req, res) => {
+  const { petId } = req.query;
+  let query = `
+    SELECT 
+      p.id,
+      p.name,
+      COUNT(t.id) as totalTasks,
+      SUM(CASE WHEN t.completedAt IS NOT NULL THEN 1 ELSE 0 END) as completedTasks,
+      AVG(CASE WHEN t.completedAt IS NOT NULL THEN 1 ELSE 0 END) * 100 as completionRate
+    FROM pets p 
+    LEFT JOIN tasks t ON p.id = t.petId 
+    WHERE p.userId = ?
+  `;
+  let params = [req.user.id];
+
+  if (petId) {
+    query += ' AND p.id = ?';
+    params.push(petId);
+  }
+
+  query += ' GROUP BY p.id, p.name';
+
+  db.all(query, params, (err, stats) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json(stats);
+  });
+});
+
+// User preferences routes
+app.get('/api/user/preferences', authenticateToken, (req, res) => {
+  db.get('SELECT preferences FROM users WHERE id = ?', [req.user.id], (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    const preferences = user ? JSON.parse(user.preferences || '{}') : {};
+    res.json(preferences);
+  });
+});
+
+app.put('/api/user/preferences', [
+  authenticateToken,
+  body('preferences').isObject().withMessage('Preferences must be an object'),
+  handleValidationErrors
+], (req, res) => {
+  const { preferences } = req.body;
+
+  db.run('UPDATE users SET preferences = ? WHERE id = ?', [JSON.stringify(preferences), req.user.id], function(err) {
+    if (err) {
+      return res.status(500).json({ error: 'Error updating preferences' });
+    }
+
+    res.json(preferences);
   });
 });
 
