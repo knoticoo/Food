@@ -57,6 +57,8 @@ export default function Register() {
 
     setIsLoading(true);
     console.log('Attempting to register user...');
+    console.log('Making API call to:', 'http://localhost:3001/api/auth/register');
+    console.log('Request data:', { name, email, password: '***' });
 
     try {
       await register(name, email, password);
@@ -64,6 +66,12 @@ export default function Register() {
       navigate('/');
     } catch (err) {
       console.error('Registration failed:', err);
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        statusText: err.response?.statusText
+      });
       // Error is handled by the auth context
     } finally {
       setIsLoading(false);

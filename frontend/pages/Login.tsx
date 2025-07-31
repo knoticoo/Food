@@ -20,11 +20,20 @@ export default function Login() {
 
     try {
       console.log('Attempting to login...');
+      console.log('Making API call to:', 'http://localhost:3001/api/auth/login');
+      console.log('Request data:', { email, password: '***' });
+      
       await login(email, password);
       console.log('Login successful, navigating to dashboard');
       navigate('/');
     } catch (err) {
       console.error('Login failed:', err);
+      console.error('Error details:', {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        statusText: err.response?.statusText
+      });
       // Error is handled by the auth context
     } finally {
       setIsLoading(false);
