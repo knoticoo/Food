@@ -7,6 +7,7 @@ const db = require('../config/database');
 const { handleValidationErrors } = require('../middleware/validation');
 const { JWT_SECRET } = require('../middleware/auth');
 const logger = require('../utils/logger');
+const dbChecker = require('../utils/dbChecker');
 
 const router = express.Router();
 
@@ -99,6 +100,36 @@ router.post('/register', [
           tokenGenerated: true,
           duration: Date.now() - startTime
         });
+
+        // Verify user was actually created in database
+        try {
+          const createdUser = await dbChecker.checkUserExists(email);
+          if (createdUser) {
+            logger.logDatabase({
+              requestId,
+              action: 'user_creation_verified',
+              userId,
+              email,
+              verification: 'success'
+            });
+          } else {
+            logger.logError({
+              requestId,
+              action: 'user_creation_verification_failed',
+              userId,
+              email,
+              error: 'User not found in database after creation'
+            });
+          }
+        } catch (verifyError) {
+          logger.logError({
+            requestId,
+            action: 'user_creation_verification_error',
+            userId,
+            email,
+            error: verifyError.message
+          });
+        }
 
         res.status(201).json({
           message: 'User created successfully',
