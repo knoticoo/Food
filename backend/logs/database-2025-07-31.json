@@ -117,5 +117,67 @@
     "userId": "dd954ae5-6814-447b-9f57-c982dd3952e5",
     "email": "demo@example.com",
     "verification": "success"
+  },
+  {
+    "timestamp": "2025-07-31T11:30:26.869Z",
+    "type": "database",
+    "requestId": "fd96a2b2-127f-4b1e-b6bc-ba3d60b09a94",
+    "action": "password_hashed",
+    "email": "quick@test.com",
+    "passwordLength": 6,
+    "duration": 68
+  },
+  {
+    "timestamp": "2025-07-31T11:30:26.881Z",
+    "type": "database",
+    "action": "check_user_exists_result",
+    "email": "quick@test.com",
+    "userExists": true,
+    "userData": {
+      "id": "ba997398-7086-4b5d-be54-a13ba9eeef9d",
+      "name": "Quick Test",
+      "email": "quick@test.com",
+      "createdAt": "2025-07-31 11:30:26"
+    }
+  },
+  {
+    "timestamp": "2025-07-31T11:30:26.881Z",
+    "type": "database",
+    "requestId": "fd96a2b2-127f-4b1e-b6bc-ba3d60b09a94",
+    "action": "user_creation_verified",
+    "userId": "ba997398-7086-4b5d-be54-a13ba9eeef9d",
+    "email": "quick@test.com",
+    "verification": "success"
+  },
+  {
+    "timestamp": "2025-07-31T11:30:29.094Z",
+    "type": "database",
+    "requestId": "606c975a-8685-40fe-8285-10a7649a1347",
+    "action": "password_hashed",
+    "email": "script@test.com",
+    "passwordLength": 6,
+    "duration": 63
+  },
+  {
+    "timestamp": "2025-07-31T11:30:29.107Z",
+    "type": "database",
+    "action": "check_user_exists_result",
+    "email": "script@test.com",
+    "userExists": true,
+    "userData": {
+      "id": "a0e4887d-7b1c-48a6-8d03-176a7a0cfbde",
+      "name": "Script Test",
+      "email": "script@test.com",
+      "createdAt": "2025-07-31 11:30:29"
+    }
+  },
+  {
+    "timestamp": "2025-07-31T11:30:29.108Z",
+    "type": "database",
+    "requestId": "606c975a-8685-40fe-8285-10a7649a1347",
+    "action": "user_creation_verified",
+    "userId": "a0e4887d-7b1c-48a6-8d03-176a7a0cfbde",
+    "email": "script@test.com",
+    "verification": "success"
   }
 ]

@@ -68,5 +68,53 @@
     "name": "Demo User",
     "tokenGenerated": true,
     "duration": 73
+  },
+  {
+    "timestamp": "2025-07-31T11:30:26.801Z",
+    "type": "registrations",
+    "requestId": "fd96a2b2-127f-4b1e-b6bc-ba3d60b09a94",
+    "action": "register_attempt",
+    "requestBody": {
+      "name": "Quick Test",
+      "email": "quick@test.com",
+      "passwordLength": 6
+    },
+    "userAgent": "curl/8.12.1",
+    "ip": "127.0.0.1"
+  },
+  {
+    "timestamp": "2025-07-31T11:30:26.880Z",
+    "type": "registrations",
+    "requestId": "fd96a2b2-127f-4b1e-b6bc-ba3d60b09a94",
+    "action": "registration_successful",
+    "userId": "ba997398-7086-4b5d-be54-a13ba9eeef9d",
+    "email": "quick@test.com",
+    "name": "Quick Test",
+    "tokenGenerated": true,
+    "duration": 79
+  },
+  {
+    "timestamp": "2025-07-31T11:30:29.031Z",
+    "type": "registrations",
+    "requestId": "606c975a-8685-40fe-8285-10a7649a1347",
+    "action": "register_attempt",
+    "requestBody": {
+      "name": "Script Test",
+      "email": "script@test.com",
+      "passwordLength": 6
+    },
+    "userAgent": "curl/8.12.1",
+    "ip": "127.0.0.1"
+  },
+  {
+    "timestamp": "2025-07-31T11:30:29.107Z",
+    "type": "registrations",
+    "requestId": "606c975a-8685-40fe-8285-10a7649a1347",
+    "action": "registration_successful",
+    "userId": "a0e4887d-7b1c-48a6-8d03-176a7a0cfbde",
+    "email": "script@test.com",
+    "name": "Script Test",
+    "tokenGenerated": true,
+    "duration": 76
   }
 ]
