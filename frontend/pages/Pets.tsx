@@ -34,10 +34,6 @@ const Pets: React.FC = () => {
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showPhotoUpload, setShowPhotoUpload] = useState(false);
-  const [showMilestoneForm, setShowMilestoneForm] = useState(false);
-  const [showWeightForm, setShowWeightForm] = useState(false);
-  const [showMoodForm, setShowMoodForm] = useState(false);
 
   const { showNotification } = useNotification();
   const { theme, toggleTheme } = useTheme();
@@ -547,8 +543,8 @@ const Pets: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold">Photo Gallery</h3>
                     <button
-                      onClick={() => setShowPhotoUpload(true)}
                       className="btn btn-primary btn-sm"
+                      disabled
                     >
                       <Camera size={16} />
                       Add Photo
@@ -581,8 +577,8 @@ const Pets: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold">Milestones</h3>
                     <button
-                      onClick={() => setShowMilestoneForm(true)}
                       className="btn btn-primary btn-sm"
+                      disabled
                     >
                       <Plus size={16} />
                       Add Milestone
@@ -618,8 +614,8 @@ const Pets: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold">Weight Tracking</h3>
                     <button
-                      onClick={() => setShowWeightForm(true)}
                       className="btn btn-primary btn-sm"
+                      disabled
                     >
                       <Plus size={16} />
                       Log Weight
@@ -655,8 +651,8 @@ const Pets: React.FC = () => {
                   <div className="flex justify-between items-center">
                     <h3 className="text-lg font-semibold">Mood Tracking</h3>
                     <button
-                      onClick={() => setShowMoodForm(true)}
                       className="btn btn-primary btn-sm"
+                      disabled
                     >
                       <Plus size={16} />
                       Log Mood
