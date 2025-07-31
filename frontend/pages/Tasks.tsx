@@ -480,7 +480,7 @@ const Tasks: React.FC = () => {
               <select 
                 className="input"
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value as 'feeding' | 'walk' | 'play' | 'treat' | 'medication' | 'grooming' | 'vet' | 'other' })}
               >
                 <option value="feeding">Кормление</option>
                 <option value="walk">Прогулка</option>
@@ -588,7 +588,7 @@ const Tasks: React.FC = () => {
               <select 
                 className="input"
                 value={formData.type}
-                onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+                onChange={(e) => setFormData({ ...formData, type: e.target.value as 'feeding' | 'walk' | 'play' | 'treat' | 'medication' | 'grooming' | 'vet' | 'other' })}
               >
                 <option value="feeding">Кормление</option>
                 <option value="walk">Прогулка</option>
